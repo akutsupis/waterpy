@@ -115,6 +115,10 @@ def preprocess(config_data, parameters, timeseries, twi):
             method="hamon"
         )
         pet = pet * timestep_daily_fraction
+        
+    #Get aet as a numpy array from the input timeseries if it exists.
+    for "aet" in timeseries.columns:
+        aet = timeseries["aet"].to_numpy() * timestep_daily_fraction
 
     # If snowmelt option is turned on, then compute snowmelt and the difference
     # between the adjusted precip with pet.
@@ -236,7 +240,7 @@ def postprocess(config_data, timeseries, preprocessed_data, topmodel_data):
     """Postprocess data for output.
 
     Output csv files
-    Plot timseries
+    Plot timeseries
     """
     # Get output timeseries data
     output_df = get_output_dataframe(timeseries,
@@ -330,6 +334,7 @@ def write_output_csv(df, filename):
         "temperature": "temperature (celsius)",
         "precipitation": "precipitation (mm/day)",
         "pet": "pet (mm/day)",
+        "aet": "aet (mm/day)",
         "precip_minus_pet": "precip_minus_pet (mm/day)",
         "flow_observed": "flow_observed (mm/day)",
         "flow_predicted": "flow_predicted (mm/day)",
