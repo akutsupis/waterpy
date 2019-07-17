@@ -49,6 +49,7 @@ def read_in(filestream):
         "precipitation (mm/day)": "precipitation",
         "pet (mm/day)": "pet",
         "flow_observed (mm/day)": "flow_observed",
+        "AET (mm/day)": "aet",
     }
 
     data = pd.read_csv(filestream, index_col=0, parse_dates=True, dtype=float)
