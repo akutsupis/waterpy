@@ -60,10 +60,10 @@ def read_input_files(config_data):
     :return: Tuple of parameters dict, timeseries dataframe, twi dataframe
     :rtype: tuple
     """
-    parameters_basin = parametersfile.read(config_data["Inputs"]["parameters_basin_file"])
+    characteristics_basin = parametersfile.read(config_data["Inputs"]["characteristics_basin_file"])
     parameters_land_type = parametersfile.read(config_data["Inputs"]["parameters_land_type_file"])
     parameters = {
-        "basin": parameters_basin,
+        "basin": characteristics_basin,
         "land_type": parameters_land_type,
     }
     timeseries = timeseriesfile.read(config_data["Inputs"]["timeseries_file"])
