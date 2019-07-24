@@ -115,10 +115,6 @@ def preprocess(config_data, parameters, timeseries, twi):
             method="hamon"
         )
         pet = pet * timestep_daily_fraction
-        
-    #Get aet as a numpy array from the input timeseries if it exists.
-    for "aet" in timeseries.columns:
-        aet = timeseries["aet"].to_numpy() * timestep_daily_fraction
 
     # If snowmelt option is turned on, then compute snowmelt and the difference
     # between the adjusted precip with pet.
@@ -156,6 +152,8 @@ def preprocess(config_data, parameters, timeseries, twi):
         parameters["basin"]["scaling_parameter"]["value"]
         * parameters["land_type"]["spatial_coeff"]["value"]
     )
+    #Define basin area value
+    basin_area = parameters["basin"]["basin_area_total"]["value"]
 
     # Return a dict of calculated data
     preprocessed_data = {
@@ -167,7 +165,8 @@ def preprocess(config_data, parameters, timeseries, twi):
         "snowpack": snowpack,
         "snow_water_equivalence": snow_water_equivalence,
         "twi_weighted_mean": twi_weighted_mean,
-        "scaling_parameter_adjusted": scaling_parameter_adjusted
+        "scaling_parameter_adjusted": scaling_parameter_adjusted,
+        "basin_area" : basin_area
     }
 
     return preprocessed_data
@@ -212,6 +211,7 @@ def run_topmodel(config_data, parameters, timeseries, twi, preprocessed_data):
         twi_mean=preprocessed_data["twi_weighted_mean"],
         precip_available=preprocessed_data["precip_minus_pet"],
         temperatures=timeseries["temperature"].to_numpy(),
+        aet=timeseries["aet"].to_numpy(),
         timestep_daily_fraction=preprocessed_data["timestep_daily_fraction"],
         option_channel_routing=config_data["Options"].getboolean("option_channel_routing"),
         option_karst=config_data["Options"].getboolean("option_karst"),
@@ -292,6 +292,13 @@ def get_output_dataframe(timeseries, preprocessed_data, topmodel_data):
 
     output_data["flow_predicted"] = topmodel_data["flow_predicted"]
     output_data["saturation_deficit_avgs"] = topmodel_data["saturation_deficit_avgs"]
+    
+    #Calculate predicted discharge in cfs; Predicted Flow * 0.0409 / Basin Area
+    m = (0.0409)
+    n = topmodel_data["flow_predicted"]
+    g = preprocessed_data["basin_area"]
+    j = ((m*n) / g)
+    output_data["discharge_predicted"] = j
 
     output_df = timeseries.assign(**output_data)
 
@@ -338,6 +345,7 @@ def write_output_csv(df, filename):
         "precip_minus_pet": "precip_minus_pet (mm/day)",
         "flow_observed": "flow_observed (mm/day)",
         "flow_predicted": "flow_predicted (mm/day)",
+        "discharge_predicted" : "discharge_predicted (cfs)",
         "saturation_deficit_avgs": "saturation_deficit_avgs (mm/day)",
         "snowprecip": "snowprecip (mm/day)",
     }
