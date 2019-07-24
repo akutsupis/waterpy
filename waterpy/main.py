@@ -337,7 +337,7 @@ def write_output_csv(df, filename):
 
     Creating a pandas Dataframe to ease of saving a csv.
     """
-    df.rename = {
+    df = df.rename(columns = {
         "temperature": "temperature (celsius)",
         "precipitation": "precipitation (mm/day)",
         "pet": "pet (mm/day)",
@@ -348,7 +348,7 @@ def write_output_csv(df, filename):
         "discharge_predicted" : "discharge_predicted (cfs)",
         "saturation_deficit_avgs": "saturation_deficit_avgs (mm/day)",
         "snowprecip": "snowprecip (mm/day)",
-    }
+    })
     df.to_csv(filename,
               float_format="%.2f")
 
