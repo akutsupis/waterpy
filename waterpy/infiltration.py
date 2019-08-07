@@ -16,19 +16,19 @@ class expinf:
 
 def green_ampt(t, R, CD, xk0, scaling_factor, dt, expinf):
     """
-    t = Time increment (input)
-    R = Precp in m/h (input)
-    xk0 = saturdated_hydraulic_con/24/1000 (m/hr) (input).
-    CD = Capilary drive, from Beven via Morel-Seytoux (input)
-    scaling_factor = scaling_parameter in m (scaling_parameter/1000) (input)
-    dt = time step (1/num steps) (input)
-    expinf = object storing the values of static variables (input)
-    f1 = infiltration at the beginning of the time step (m)
-    f2 = infiltration at the end of the timestep (m)
-    r2 = infiltration rate (m/dt)
-    tp = time to ponding
-    cumf = cumulative infiltration at the start (m)
-    cumf2 = cumulative infiltration at the end, aka big F (m)
+    t: Time increment (input)
+    R: Precp in m/h (input)
+    xk0: saturated_hydraulic_con/24/1000 (m/hr) (input).
+    CD: Capillary drive, from Beven via Morel-Seytoux (input)
+    scaling_factor: scaling_parameter in m (scaling_parameter/1000) (input)
+    dt: Calculation time step in relation to reporting timestep, in this case hr/day (input)
+    expinf: object storing the values of static variables (input)
+    f1: Infiltration at the beginning of the time step (m)
+    f2: Infiltration at the end of the timestep (m)
+    r2: Infiltration rate (m/dt)
+    tp: Estimated time to ponding
+    cumf = Cumulative infiltration at the start of a time step (m)
+    cumf2 = Cumulative infiltration at the end of a time step, aka big F (m)
     f = df in Beven.  Little f in the papers. (m)
     """
 
@@ -119,3 +119,17 @@ def green_ampt(t, R, CD, xk0, scaling_factor, dt, expinf):
         expinf.ponding = 0
         return f
 
+def static_reset(expinf, infil_array, i):
+
+    """Resets variables in there is in precipitation
+    expinf: Class containing static variables
+    infil_array: Daily infiltration array
+    i: time step index
+    """
+
+    expinf.cumf = 0
+    expinf.cumf2 = 0
+    expinf.ponding = 0
+    expinf.tp = 0
+    expinf.const = 0
+    infil_array[i] = 0

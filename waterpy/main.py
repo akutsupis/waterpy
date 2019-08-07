@@ -229,6 +229,7 @@ def run_topmodel(config_data, parameters, timeseries, twi, preprocessed_data):
         "saturation_deficit_avgs": topmodel.saturation_deficit_avgs,
         "saturation_deficit_locals": topmodel.saturation_deficit_locals,
         "unsaturated_zone_storages": topmodel.unsaturated_zone_storages,
+        "infiltration": topmodel.infiltration_array,
         "root_zone_storages": topmodel.root_zone_storages,
         "evaporations": topmodel.evaporations,
     }
@@ -337,7 +338,7 @@ def write_output_csv(df, filename):
 
     Creating a pandas Dataframe to ease of saving a csv.
     """
-    df = df.rename(columns = {
+    df = df.rename(columns={
         "temperature": "temperature (celsius)",
         "precipitation": "precipitation (mm/day)",
         "pet": "pet (mm/day)",
@@ -345,6 +346,7 @@ def write_output_csv(df, filename):
         "precip_minus_pet": "precip_minus_pet (mm/day)",
         "flow_observed": "flow_observed (mm/day)",
         "flow_predicted": "flow_predicted (mm/day)",
+        "infiltration": "infiltration (mm/day)",
         "discharge_predicted" : "discharge_predicted (cfs)",
         "saturation_deficit_avgs": "saturation_deficit_avgs (mm/day)",
         "snowprecip": "snowprecip (mm/day)",

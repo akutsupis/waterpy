@@ -30,6 +30,7 @@ import math
 import numpy as np
 
 from . import hydrocalcs
+from . import infiltration
 from . import utils
 
 
@@ -179,6 +180,7 @@ class Topmodel:
         self.option_karst = option_karst
 
         self.saturation_deficit_local = None
+        self.precip_excess_diff = None
         self.precip_for_evaporation = None
         self.precip_for_recharge = None
         self.precip_excesses = None
@@ -191,6 +193,7 @@ class Topmodel:
         self.flow_predicted_total = None
         self.flow_predicted_stream = None
         self.flow_predicted_karst = None
+        self.subsurface_flow_rate_ratio = None
 
         self.evaporation = np.zeros(self.num_twi_increments)
 
@@ -210,6 +213,9 @@ class Topmodel:
 
         # Initialize unsaturated zone storage and root zone storage
         self._initialize_soil_zone_storages()
+
+        # Initialize infiltration parameters
+        self._initialize_infiltration()
 
     def _initialize_soil_hydraulic_parameters(self):
         """Initialize the soil hydraulic parameters."""
@@ -307,6 +313,24 @@ class Topmodel:
             np.ones(self.num_twi_increments) * (self.root_zone_storage_max * 0.5)
         )
 
+    def _initialize_infiltration(self):
+        """Initialize the parameters for the infiltration excesses"""
+
+        # Capillary drive is from Beven (1984) via Morel-Seytoux and Khanji (1974)
+        # DT is the relation between the calculation interval (hourly) and reporting interval (daily)
+        self.capillary_drive = 0.036
+        self.xk_0 = (
+            (self.saturated_hydraulic_conductivity/24)/1000
+        )
+        self.scaling_factor = (
+                self.scaling_parameter / 1000
+        )
+        self.dt = 24
+        self.inf_class = infiltration.expinf
+        self.infiltration_array = np.zeros(self.num_timesteps)
+        self.infiltration_excess = np.zeros(self.num_timesteps)
+        self.inf_class = infiltration.expinf
+
     def run(self):
         """Calculate water fluxes and flow prediction."""
 
@@ -336,12 +360,34 @@ class Topmodel:
                 self.precip_for_evaporation = (
                     -1 * self.precip_available[i]
                 )
+
+                # Are there instances where we have negative precip?  Really?
+                infiltration.static_reset(self.inf_class, self.infiltration_array, i)
+
             elif self.precip_available[i] > 0:
                 self.precip_for_recharge = self.precip_available[i]
 
+                # Calculate infiltration
+                r = (self.precip_available[i] / 1000) / self.dt
+                hr_infiltration_array = np.zeros(self.dt)
+                for t in range(1, self.dt + 1):
+                    hr_infiltration_array[t - 1] = infiltration.green_ampt(
+                        t, r, self.capillary_drive, self.xk_0, self.scaling_factor, self.dt, self.inf_class
+                    )
+                self.infiltration_array[i] = np.sum(hr_infiltration_array)
+
+            elif self.precip_available[i] == 0:
+                # No precip, resetting infiltration variables.
+                infiltration.static_reset(self.inf_class, self.infiltration_array, i)
+
+            self.infiltration_array[i] = self.infiltration_array[i] * 1000
+            self.infiltration_excess[i] = self.precip_available - self.infiltration_array[i]
+            if self.infiltration_excess[i] <= 0:
+                self.infiltration_excess[i] = 0
+
             # Set the et_exponent based on current temperature
             # Temperature > 15 degrees Celsius means growth
-            # Tempearture <= 15 degrees Celsius means dormant
+            # Temperature <= 15 degrees Celsius means dormant
             if self.temperatures[i] > 15:
                 self.et_exponent = 0.5
             else:
@@ -544,6 +590,7 @@ class Topmodel:
                         self.flow_predicted_overland
                         + (self.precip_excesses[j]
                            * self.twi_saturated_areas[j])
+                        + (self.infiltration_excess[i])
                     )
 
                 # Saving variables of interest
