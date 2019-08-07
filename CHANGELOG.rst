@@ -5,6 +5,10 @@ Changelog
 Version 0.1.0
 -------------
 
+2019-08-07
+----------
+- Added infiltration.py to solve for infiltration excess flow.
+
 2019-05-13
 ----------
 - Add karst option which essentially bypasses the subsurface flow.

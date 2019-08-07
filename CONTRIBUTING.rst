@@ -12,7 +12,7 @@ Types of Contributions
 Report Bugs
 ~~~~~~~~~~~
 
-Report bugs to Jeremiah Lant at jlant@usgs.gov or on the issues page of
+Report bugs to Alex Headman at aheadman@usgs.gov or on the issues page of
 the respective online repository where waterpy is hosted.
 
 If you are reporting a bug, please include:

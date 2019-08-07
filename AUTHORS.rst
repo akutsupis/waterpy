@@ -4,12 +4,13 @@ Authors
 Development Leads
 -----------------
 
-- Jeremiah Lant <jlant@usgs.gov>
+- Alex Headman <aheadman@usgs.gov>
 
 Core Developers
 ---------------
 
-- name <email>
+- Jeremiah Lant <jlant@usgs.gov>
+- Mallory Gerzan <mgergan@usgs.gov>
 
 Contributors
 ------------

@@ -5,6 +5,7 @@ waterpy/cli.py
 waterpy/exceptions.py
 waterpy/gooey_1.py
 waterpy/hydrocalcs.py
+waterpy/infiltration.py
 waterpy/main.py
 waterpy/modelconfigfile.py
 waterpy/parametersfile.py

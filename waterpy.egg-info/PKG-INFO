@@ -37,7 +37,6 @@ States Government as to the accuracy and functioning of the program and related 
 distribution constitute any such warranty, and no responsibility is assumed by the USGS in connection therewith.
 
 This software is provided "AS IS."
-Description-Content-Type: UNKNOWN
 Description: .. image:: https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/USGS_logo_green.svg/320px-USGS_logo_green.svg.png
                 :target: http://www.usgs.gov/
                 :alt: U.S. Geological Survey logo
@@ -250,6 +249,10 @@ Description: .. image:: https://upload.wikimedia.org/wikipedia/commons/thumb/1/1
         
         Version 0.1.0
         -------------
+        
+        2019-08-07
+        ----------
+        - Added infiltration.py to solve for infiltration excess flow.
         
         2019-05-13
         ----------
