@@ -294,8 +294,8 @@ def get_output_dataframe(timeseries, preprocessed_data, topmodel_data):
     output_data["flow_predicted"] = topmodel_data["flow_predicted"]
     output_data["saturation_deficit_avgs"] = topmodel_data["saturation_deficit_avgs"]
     
-    #Calculate predicted discharge in cfs; Predicted Flow * 0.0409 / Basin Area
-    m = (0.0409)
+    # Calculate predicted discharge in cfs; Predicted Flow * 0.0409 / Basin Area
+    m = 0.0409
     n = topmodel_data["flow_predicted"]
     g = preprocessed_data["basin_area"]
     j = ((m*n) / g)
@@ -347,7 +347,7 @@ def write_output_csv(df, filename):
         "flow_observed": "flow_observed (mm/day)",
         "flow_predicted": "flow_predicted (mm/day)",
         "infiltration": "infiltration (mm/day)",
-        "discharge_predicted" : "discharge_predicted (cfs)",
+        "discharge_predicted": "discharge_predicted (cfs)",
         "saturation_deficit_avgs": "saturation_deficit_avgs (mm/day)",
         "snowprecip": "snowprecip (mm/day)",
     })

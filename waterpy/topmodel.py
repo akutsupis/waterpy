@@ -194,6 +194,7 @@ class Topmodel:
         self.flow_predicted_stream = None
         self.flow_predicted_karst = None
         self.subsurface_flow_rate_ratio = None
+        self.infiltration_array = None
 
         self.evaporation = np.zeros(self.num_twi_increments)
 
