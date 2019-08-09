@@ -194,7 +194,7 @@ class Topmodel:
         self.flow_predicted_stream = None
         self.flow_predicted_karst = None
         self.subsurface_flow_rate_ratio = None
-        self.infiltration_array = None
+        self.infiltration_array = np.zeros(self.num_timesteps)
 
         self.evaporation = np.zeros(self.num_twi_increments)
 
@@ -321,16 +321,14 @@ class Topmodel:
         # DT is the relation between the calculation interval (hourly) and reporting interval (daily)
         self.capillary_drive = 0.036
         self.xk_0 = (
-            (self.saturated_hydraulic_conductivity/24)/1000
+            (self.saturated_hydraulic_conductivity/1000)
         )
         self.scaling_factor = (
                 self.scaling_parameter / 1000
         )
         self.dt = 24
         self.inf_class = infiltration.expinf
-        self.infiltration_array = np.zeros(self.num_timesteps)
         self.infiltration_excess = np.zeros(self.num_timesteps)
-        self.inf_class = infiltration.expinf
 
     def run(self):
         """Calculate water fluxes and flow prediction."""
@@ -380,6 +378,7 @@ class Topmodel:
             elif self.precip_available[i] == 0:
                 # No precip, resetting infiltration variables.
                 infiltration.static_reset(self.inf_class, self.infiltration_array, i)
+                self.infiltration_array[i] = 0
 
             self.infiltration_array[i] = self.infiltration_array[i] * 1000
             if self.infiltration_array[i] < 0:
@@ -601,19 +600,24 @@ class Topmodel:
                         self.flow_predicted_overland
                         + (self.precip_excesses[j]
                            * self.twi_saturated_areas[j])
-                        + (self.infiltration_excess[i])
                     )
+
 
                 # Saving variables of interest
                 # ============================
                 self.unsaturated_zone_storages[i][j] = self.unsaturated_zone_storage[j]
-                self.root_zone_storages[i][j] = self.root_zone_storage[j]
+                self.root_zone_storages[i][j] = self.root_zone_storage[j] - self.infiltration_array[i]
                 self.saturation_deficit_locals[i][j] = self.saturation_deficit_local[j]
                 self.evaporations[i][j] = self.evaporation[j]
 
                 # END OF TWI INCREMENTS LOOP
 
             # CONTINUE TIMESTEP LOOP
+
+            # Accounting for infiltration excess.
+            self.flow_predicted_overland = (
+                    self.flow_predicted_overland + self.infiltration_excess[i]
+            )
 
             # Subsurface flow (base flow)
             # ===========================

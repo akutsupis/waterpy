@@ -1,6 +1,11 @@
-import math
+"""
+Module handling infiltration calculation.
+References:
+Beven (1984)
+Morel-Seytoux and Khanji (1974)
+"""
 
-# initialize output on step one.
+import math
 
 class expinf:
     """

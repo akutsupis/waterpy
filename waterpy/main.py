@@ -211,7 +211,7 @@ def run_topmodel(config_data, parameters, timeseries, twi, preprocessed_data):
         twi_mean=preprocessed_data["twi_weighted_mean"],
         precip_available=preprocessed_data["precip_minus_pet"],
         temperatures=timeseries["temperature"].to_numpy(),
-        aet=timeseries["aet"].to_numpy(),
+        #aet=timeseries["aet"].to_numpy(),    # commented out in review.  Parameter is not currently used in topmodel.
         timestep_daily_fraction=preprocessed_data["timestep_daily_fraction"],
         option_channel_routing=config_data["Options"].getboolean("option_channel_routing"),
         option_karst=config_data["Options"].getboolean("option_karst"),
@@ -232,6 +232,7 @@ def run_topmodel(config_data, parameters, timeseries, twi, preprocessed_data):
         "infiltration": topmodel.infiltration_array,
         "root_zone_storages": topmodel.root_zone_storages,
         "evaporations": topmodel.evaporations,
+        "infiltration_excess": topmodel.infiltration_excess
     }
 
     return topmodel_data
@@ -290,7 +291,8 @@ def get_output_dataframe(timeseries, preprocessed_data, topmodel_data):
         output_data["pet"] = preprocessed_data["pet"]
 
     output_data["precip_minus_pet"] = preprocessed_data["precip_minus_pet"]
-
+    output_data["infiltration"] = topmodel_data["infiltration"]
+    output_data["infiltration_excess"] = topmodel_data["infiltration_excess"]
     output_data["flow_predicted"] = topmodel_data["flow_predicted"]
     output_data["saturation_deficit_avgs"] = topmodel_data["saturation_deficit_avgs"]
     
@@ -338,7 +340,7 @@ def write_output_csv(df, filename):
 
     Creating a pandas Dataframe to ease of saving a csv.
     """
-    df = df.rename(columns={
+    df.rename = {
         "temperature": "temperature (celsius)",
         "precipitation": "precipitation (mm/day)",
         "pet": "pet (mm/day)",
@@ -350,7 +352,7 @@ def write_output_csv(df, filename):
         "discharge_predicted": "discharge_predicted (cfs)",
         "saturation_deficit_avgs": "saturation_deficit_avgs (mm/day)",
         "snowprecip": "snowprecip (mm/day)",
-    })
+    }
     df.to_csv(filename,
               float_format="%.2f")
 
