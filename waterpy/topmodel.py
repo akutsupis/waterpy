@@ -371,7 +371,8 @@ class Topmodel:
                 hr_infiltration_array = np.zeros(self.dt)
                 for t in range(1, self.dt + 1):
                     hr_infiltration_array[t - 1] = infiltration.green_ampt(
-                        t, r, self.capillary_drive, self.xk_0, self.scaling_factor, self.dt, self.inf_class
+                        t/self.dt, r, self.capillary_drive, self.xk_0/self.dt, self.scaling_factor,
+                        self.dt, self.inf_class
                     )
                 self.infiltration_array[i] = np.sum(hr_infiltration_array)
 
@@ -428,7 +429,7 @@ class Topmodel:
                 # unsaturated zone storage
                 if self.unsaturated_zone_storage[j] > self.saturation_deficit_local[j]:
                     self.root_zone_storage[j] = (
-                        self.root_zone_storage[j]
+                        self.root_zone_storage[j] + self.infiltration_array[i]
                         + (self.unsaturated_zone_storage[j]
                            - self.saturation_deficit_local[j])
                     )
@@ -606,7 +607,7 @@ class Topmodel:
                 # Saving variables of interest
                 # ============================
                 self.unsaturated_zone_storages[i][j] = self.unsaturated_zone_storage[j]
-                self.root_zone_storages[i][j] = self.root_zone_storage[j] - self.infiltration_array[i]
+                self.root_zone_storages[i][j] = self.root_zone_storage[j]
                 self.saturation_deficit_locals[i][j] = self.saturation_deficit_local[j]
                 self.evaporations[i][j] = self.evaporation[j]
 
@@ -732,4 +733,10 @@ class Topmodel:
             )
             self.evaporations = (
                 hydrocalcs.sum_hourly_to_daily(self.evaporations)
+            )
+            self.infiltration_array = (
+                hydrocalcs.sum_hourly_to_daily(self.infiltration_array)
+            )
+            self.infiltration_excess = (
+                hydrocalcs.sum_hourly_to_daily(self.infiltration_excess)
             )
