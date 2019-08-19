@@ -371,7 +371,7 @@ class Topmodel:
                 hr_infiltration_array = np.zeros(self.dt)
                 for t in range(1, self.dt + 1):
                     hr_infiltration_array[t - 1] = infiltration.green_ampt(
-                        t/self.dt, r, self.capillary_drive, self.xk_0/self.dt, self.scaling_factor,
+                        t/self.dt, r, self.capillary_drive, self.xk_0, self.scaling_factor,
                         self.dt, self.inf_class
                     )
                 self.infiltration_array[i] = np.sum(hr_infiltration_array)
@@ -400,9 +400,11 @@ class Topmodel:
             # Temperature > 15 degrees Celsius means growth
             # Temperature <= 15 degrees Celsius means dormant
             if self.temperatures[i] > 15:
-                self.et_exponent = 0.5
+                # changed from 0.5
+                self.et_exponent = 0
             else:
-                self.et_exponent = 5
+                # changed from 5 8/19/2019
+                self.et_exponent = 0
 
             # Start of twi increments loop
             for j in range(self.num_twi_increments):

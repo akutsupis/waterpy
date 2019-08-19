@@ -61,6 +61,7 @@ def green_ampt(t, R, CD, xk0, scaling_factor, dt, expinf):
                 expinf.cumf2 = expinf.cumf
                 expinf.tp = t - dt
                 expinf.ponding = 1
+                expinf.const = 0
                 expinf.const = calc_cnst(expinf.cumf2, CD, scaling_factor)
 
         f2 = expinf.cumf + R * dt
