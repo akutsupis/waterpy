@@ -371,7 +371,7 @@ class Topmodel:
                 hr_infiltration_array = np.zeros(self.dt)
                 for t in range(1, self.dt + 1):
                     hr_infiltration_array[t - 1] = infiltration.green_ampt(
-                        t/self.dt, r, self.capillary_drive, self.xk_0, self.scaling_factor,
+                        t, r, self.capillary_drive, self.xk_0, self.scaling_factor,
                         self.dt, self.inf_class
                     )
                 self.infiltration_array[i] = np.sum(hr_infiltration_array)

@@ -125,6 +125,7 @@ def green_ampt(t, R, CD, xk0, scaling_factor, dt, expinf):
         expinf.ponding = 0
         return f
 
+
 def static_reset(expinf, infil_array, i):
 
     """Resets variables in there is in precipitation

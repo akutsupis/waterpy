@@ -48,7 +48,7 @@ def read_in(filestream):
         "temperature (celsius)": "temperature",
         "precipitation (mm/day)": "precipitation",
         "pet (mm/day)": "pet",
-    #    "aet (mm/day)": "aet",
+        "aet (mm/day)": "aet",
         "flow_observed (mm/day)": "flow_observed",
     }
 

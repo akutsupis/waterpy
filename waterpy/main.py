@@ -169,7 +169,7 @@ def preprocess(config_data, parameters, timeseries, twi):
         "twi_weighted_mean": twi_weighted_mean,
         "scaling_parameter_adjusted": scaling_parameter_adjusted,
         "aet": aet,
-        "basin_area" : basin_area
+        "basin_area": basin_area
     }
 
     return preprocessed_data
