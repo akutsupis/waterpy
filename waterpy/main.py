@@ -1,4 +1,3 @@
-
 def main():
 
 
@@ -154,6 +153,9 @@ def preprocess(config_data, parameters, timeseries, twi):
     )
     #Define basin area value
     basin_area = parameters["basin"]["basin_area_total"]["value"]
+    
+    #Define aet from Timeseries
+    aet=timeseries["aet"].to_numpy()
 
     # Return a dict of calculated data
     preprocessed_data = {
@@ -166,6 +168,7 @@ def preprocess(config_data, parameters, timeseries, twi):
         "snow_water_equivalence": snow_water_equivalence,
         "twi_weighted_mean": twi_weighted_mean,
         "scaling_parameter_adjusted": scaling_parameter_adjusted,
+        "aet": aet,
         "basin_area" : basin_area
     }
 
@@ -211,7 +214,7 @@ def run_topmodel(config_data, parameters, timeseries, twi, preprocessed_data):
         twi_mean=preprocessed_data["twi_weighted_mean"],
         precip_available=preprocessed_data["precip_minus_pet"],
         temperatures=timeseries["temperature"].to_numpy(),
-        #aet=timeseries["aet"].to_numpy(),    # commented out in review.  Parameter is not currently used in topmodel.
+#        aet=timeseries["aet"].to_numpy(),    # commented out in review.  Parameter is not currently used in topmodel.
         timestep_daily_fraction=preprocessed_data["timestep_daily_fraction"],
         option_channel_routing=config_data["Options"].getboolean("option_channel_routing"),
         option_karst=config_data["Options"].getboolean("option_karst"),
@@ -340,7 +343,7 @@ def write_output_csv(df, filename):
 
     Creating a pandas Dataframe to ease of saving a csv.
     """
-    df.rename = {
+    df = df.rename(columns={
         "temperature": "temperature (celsius)",
         "precipitation": "precipitation (mm/day)",
         "pet": "pet (mm/day)",
@@ -352,7 +355,7 @@ def write_output_csv(df, filename):
         "discharge_predicted": "discharge_predicted (cfs)",
         "saturation_deficit_avgs": "saturation_deficit_avgs (mm/day)",
         "snowprecip": "snowprecip (mm/day)",
-    }
+    })
     df.to_csv(filename,
               float_format="%.2f")
 
