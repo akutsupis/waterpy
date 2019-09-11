@@ -359,8 +359,6 @@ class Topmodel:
                 self.precip_for_evaporation = (
                     -1 * self.precip_available[i]
                 )
-
-                # Looks like this would occur when PPT < PET?
                 infiltration.static_reset(self.inf_class, self.infiltration_array, i)
 
             elif self.precip_available[i] > 0:
@@ -431,7 +429,7 @@ class Topmodel:
                 # unsaturated zone storage
                 if self.unsaturated_zone_storage[j] > self.saturation_deficit_local[j]:
                     self.root_zone_storage[j] = (
-                        self.root_zone_storage[j] + self.infiltration_array[i]
+                        self.root_zone_storage[j] +
                         + (self.unsaturated_zone_storage[j]
                            - self.saturation_deficit_local[j])
                     )
@@ -722,16 +720,16 @@ class Topmodel:
                 hydrocalcs.sum_hourly_to_daily(self.flow_predicted)
             )
             self.saturation_deficit_avgs = (
-                hydrocalcs.sum_hourly_to_daily(self.saturation_deficit_avgs)
+                hydrocalcs.sum_hourly_to_daily(self.saturation_deficit_avgs) * self.timestep_daily_fraction
             )
             self.saturation_deficit_locals = (
-                hydrocalcs.sum_hourly_to_daily(self.saturation_deficit_locals)
+                hydrocalcs.sum_hourly_to_daily(self.saturation_deficit_locals) * self.timestep_daily_fraction
             )
             self.unsaturated_zone_storages = (
-                hydrocalcs.sum_hourly_to_daily(self.unsaturated_zone_storages)
+                hydrocalcs.sum_hourly_to_daily(self.unsaturated_zone_storages) * self.timestep_daily_fraction
             )
             self.root_zone_storages = (
-                hydrocalcs.sum_hourly_to_daily(self.root_zone_storages)
+                hydrocalcs.sum_hourly_to_daily(self.root_zone_storages) * self.timestep_daily_fraction
             )
             self.evaporations = (
                 hydrocalcs.sum_hourly_to_daily(self.evaporations)

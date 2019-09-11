@@ -154,8 +154,8 @@ def preprocess(config_data, parameters, timeseries, twi):
     #Define basin area value
     basin_area = parameters["basin"]["basin_area_total"]["value"]
     
-    #Define aet from Timeseries
-    aet=timeseries["aet"].to_numpy()
+    # #Define aet from Timeseries
+    # aet=timeseries["aet"].to_numpy()
 
     # Return a dict of calculated data
     preprocessed_data = {
@@ -168,7 +168,7 @@ def preprocess(config_data, parameters, timeseries, twi):
         "snow_water_equivalence": snow_water_equivalence,
         "twi_weighted_mean": twi_weighted_mean,
         "scaling_parameter_adjusted": scaling_parameter_adjusted,
-        "aet": aet,
+        # "aet": aet,
         "basin_area": basin_area
     }
 
@@ -347,7 +347,7 @@ def write_output_csv(df, filename):
         "temperature": "temperature (celsius)",
         "precipitation": "precipitation (mm/day)",
         "pet": "pet (mm/day)",
-        "aet": "aet (mm/day)",
+        # "aet": "aet (mm/day)",
         "precip_minus_pet": "precip_minus_pet (mm/day)",
         "flow_observed": "flow_observed (mm/day)",
         "flow_predicted": "flow_predicted (mm/day)",
