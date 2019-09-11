@@ -235,7 +235,8 @@ def run_topmodel(config_data, parameters, timeseries, twi, preprocessed_data):
         "infiltration": topmodel.infiltration_array,
         "root_zone_storages": topmodel.root_zone_storages,
         "evaporations": topmodel.evaporations,
-        "infiltration_excess": topmodel.infiltration_excess
+        "infiltration_excess": topmodel.infiltration_excess,
+        "evaporation_actual": topmodel.evaporation_actual
     }
 
     return topmodel_data
@@ -292,7 +293,7 @@ def get_output_dataframe(timeseries, preprocessed_data, topmodel_data):
 
     if "pet" not in timeseries.columns:
         output_data["pet"] = preprocessed_data["pet"]
-
+    output_data["aet"] = topmodel_data["evaporation_actual"]
     output_data["precip_minus_pet"] = preprocessed_data["precip_minus_pet"]
     output_data["infiltration"] = topmodel_data["infiltration"]
     output_data["infiltration_excess"] = topmodel_data["infiltration_excess"]
@@ -347,7 +348,7 @@ def write_output_csv(df, filename):
         "temperature": "temperature (celsius)",
         "precipitation": "precipitation (mm/day)",
         "pet": "pet (mm/day)",
-        # "aet": "aet (mm/day)",
+        "aet": "aet (mm/day)",
         "precip_minus_pet": "precip_minus_pet (mm/day)",
         "flow_observed": "flow_observed (mm/day)",
         "flow_predicted": "flow_predicted (mm/day)",

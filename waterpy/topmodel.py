@@ -176,6 +176,8 @@ class Topmodel:
         self.evaporations = utils.nans((self.num_timesteps,
                                         self.num_twi_increments))
 
+        self.evaporation_actual = utils.nans(self.num_timesteps)
+
         # Karst option
         self.option_karst = option_karst
 
@@ -710,6 +712,7 @@ class Topmodel:
             # Saving variables of interest
             # ============================
             self.saturation_deficit_avgs[i] = self.saturation_deficit_avg
+            self.evaporation_actual[i] = self.evaporations[i][j]
 
         # Post processing
         # ===============
@@ -739,4 +742,7 @@ class Topmodel:
             )
             self.infiltration_excess = (
                 hydrocalcs.sum_hourly_to_daily(self.infiltration_excess)
+            )
+            self.evaporation_actual = (
+                    hydrocalcs.sum_hourly_to_daily(self.evaporation_actual)
             )
