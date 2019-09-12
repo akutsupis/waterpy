@@ -199,6 +199,7 @@ class Topmodel:
         self.infiltration_array = np.zeros(self.num_timesteps)
 
         self.evaporation = np.zeros(self.num_twi_increments)
+        self.precip_for_evaporation = np.zeros(self.num_timesteps)
 
         # Initialize model
         self._initialize()
@@ -357,11 +358,11 @@ class Topmodel:
             # ground to recharge soil moisture and any left over after that
             # runs off as streamflow
             # If precip_available = 0 => no surplus precip
-            self.precip_for_evaporation = 0
+
             self.precip_for_recharge = 0
 
             if self.precip_available[i] < 0:
-                self.precip_for_evaporation = (
+                self.precip_for_evaporation[i] = (
                     -1 * self.precip_available[i]
                 )
                 infiltration.static_reset(self.inf_class, self.infiltration_array, i)
@@ -405,10 +406,10 @@ class Topmodel:
             # Temperature <= 15 degrees Celsius means dormant
             if self.temperatures[i] > 15:
                 # changed from 0.5
-                self.et_exponent = 0.5
+                self.et_exponent = 0
             else:
                 # changed from 5 8/19/2019
-                self.et_exponent = 5
+                self.et_exponent = 0
 
             # Start of twi increments loop
             for j in range(self.num_twi_increments):
@@ -573,10 +574,13 @@ class Topmodel:
                 # Note: Evaporation is calculated using AET formula from
                 # Table 2 of USGS SIR 20155143 (see reference [2] in
                 # module docstring)
-                if self.precip_for_evaporation > 0:
-                    self.evaporation[j] = self.precip_for_evaporation * (
+                if self.precip_for_evaporation[i] > 0:
+                    self.evaporation[j] = self.precip_for_evaporation[i] * (
                         (self.root_zone_storage[j] / self.root_zone_storage_max)**self.et_exponent
                     )
+
+                    if self.evaporation[j] > self.precip_for_evaporation[i]:
+                        self.evaporation[j] = self.precip_for_evaporation[i]
 
                     # If the precipitation available for evapotranspiration is
                     # greater than the soil root zone storage amount, then
@@ -596,8 +600,7 @@ class Topmodel:
                         self.root_zone_storage[j] - self.evaporation[j]
                     )
 
-                if self.evaporation[j] > self.precip_for_evaporation:
-                    self.evaporation[j] = self.precip_for_evaporation
+
 
                 # Overland flow
                 # =============
