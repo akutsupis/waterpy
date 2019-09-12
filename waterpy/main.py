@@ -299,7 +299,7 @@ def get_output_dataframe(timeseries, preprocessed_data, topmodel_data):
     output_data["infiltration_excess"] = topmodel_data["infiltration_excess"]
     output_data["flow_predicted"] = topmodel_data["flow_predicted"]
     output_data["saturation_deficit_avgs"] = topmodel_data["saturation_deficit_avgs"]
-    
+
     # Calculate predicted discharge in cfs; Predicted Flow * 0.0409 / Basin Area
     m = 0.0409
     n = topmodel_data["flow_predicted"]
