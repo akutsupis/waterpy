@@ -94,6 +94,9 @@ class Topmodel:
             self.precip_available = hydrocalcs.randomize_daily_to_hourly(precip_available)
             self.temperatures = hydrocalcs.copy_daily_to_hourly(temperatures)
             self.timestep_daily_fraction = 3600 / 86400
+
+            # Currently testing this.  it seems like it doesn't matter, but it makes sense we should do this.
+            self.saturated_hydraulic_conductivity = saturated_hydraulic_conductivity * self.timestep_daily_fraction
         else:
             self.option_randomize_daily_to_hourly = option_randomize_daily_to_hourly
             self.precip_available = precip_available
@@ -608,6 +611,9 @@ class Topmodel:
                 # calculate the predicted overland flow from the amount of
                 # excess precipitation and the saturated area for the current
                 # twi increment
+                # Note from Alex - if we are calculating excess via infiltration
+                # how necessary is this step?
+
                 if self.precip_excesses[j] > 0:
                     self.flow_predicted_overland = (
                         self.flow_predicted_overland
@@ -739,10 +745,10 @@ class Topmodel:
                 hydrocalcs.sum_hourly_to_daily(self.saturation_deficit_locals) * self.timestep_daily_fraction
             )
             self.unsaturated_zone_storages = (
-                hydrocalcs.sum_hourly_to_daily(self.unsaturated_zone_storages) * self.timestep_daily_fraction
+                hydrocalcs.sum_hourly_to_daily(self.unsaturated_zone_storages)
             )
             self.root_zone_storages = (
-                hydrocalcs.sum_hourly_to_daily(self.root_zone_storages) * self.timestep_daily_fraction
+                hydrocalcs.sum_hourly_to_daily(self.root_zone_storages)
             )
             self.evaporations = (
                 hydrocalcs.sum_hourly_to_daily(self.evaporations)
