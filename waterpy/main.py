@@ -140,8 +140,8 @@ def preprocess(config_data, parameters, timeseries, twi):
         precip_minus_pet = snowprecip - pet
     else:
         # Calculate the difference between the original precip and pet
-        precip_minus_pet = timeseries["precipitation"].to_numpy() - pet
-
+        # precip_minus_pet = timeseries["precipitation"].to_numpy() - pet
+        precip_minus_pet = timeseries["precipitation"].to_numpy()
     # Calculate the twi weighted mean
     twi_weighted_mean = hydrocalcs.weighted_mean(values=twi["twi"],
                                                  weights=twi["proportion"])
@@ -213,6 +213,7 @@ def run_topmodel(config_data, parameters, timeseries, twi, preprocessed_data):
         twi_saturated_areas=twi["proportion"].to_numpy(),
         twi_mean=preprocessed_data["twi_weighted_mean"],
         precip_available=preprocessed_data["precip_minus_pet"],
+        pet_hamon = preprocessed_data["pet"],
         temperatures=timeseries["temperature"].to_numpy(),
 #        aet=timeseries["aet"].to_numpy(),    # commented out in review.  Parameter is not currently used in topmodel.
         timestep_daily_fraction=preprocessed_data["timestep_daily_fraction"],
@@ -236,7 +237,8 @@ def run_topmodel(config_data, parameters, timeseries, twi, preprocessed_data):
         "root_zone_storages": topmodel.root_zone_storages,
         "evaporations": topmodel.evaporations,
         "infiltration_excess": topmodel.infiltration_excess,
-        "evaporation_actual": topmodel.evaporation_actual
+        "evaporation_actual": topmodel.evaporation_actual,
+        "precip_available": topmodel.precip_available
     }
 
     return topmodel_data
@@ -294,11 +296,13 @@ def get_output_dataframe(timeseries, preprocessed_data, topmodel_data):
     if "pet" not in timeseries.columns:
         output_data["pet"] = preprocessed_data["pet"]
     output_data["aet"] = topmodel_data["evaporation_actual"]
-    output_data["precip_minus_pet"] = preprocessed_data["precip_minus_pet"]
+    #output_data["precip_minus_pet"] = preprocessed_data["precip_minus_pet"]
+    output_data["precip_available"] = topmodel_data["precip_available"]
     output_data["infiltration"] = topmodel_data["infiltration"]
     output_data["infiltration_excess"] = topmodel_data["infiltration_excess"]
     output_data["flow_predicted"] = topmodel_data["flow_predicted"]
     output_data["saturation_deficit_avgs"] = topmodel_data["saturation_deficit_avgs"]
+
 
     # Calculate predicted discharge in cfs; Predicted Flow * 0.0409 / Basin Area
     m = 0.0409
