@@ -22,7 +22,7 @@ Water Availability Tool for Environmental Resources (WATER): U.S. Geological
 Survey Scientific Investigations Report 2015–5143, 68 p.,
 http://dx.doi.org/10.3133/sir20155143
 
-:authors: 2019 by Jeremiah Lant, see AUTHORS
+:authors: 2019 by Alexander Headman, Jeremiah Lant, see AUTHORS
 :license: CC0 1.0, see LICENSE file for details
 """
 
