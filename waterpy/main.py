@@ -215,7 +215,6 @@ def run_topmodel(config_data, parameters, timeseries, twi, preprocessed_data):
         precip_available=preprocessed_data["precip_minus_pet"],
         pet_hamon = preprocessed_data["pet"],
         temperatures=timeseries["temperature"].to_numpy(),
-#        aet=timeseries["aet"].to_numpy(),    # commented out in review.  Parameter is not currently used in topmodel.
         timestep_daily_fraction=preprocessed_data["timestep_daily_fraction"],
         option_channel_routing=config_data["Options"].getboolean("option_channel_routing"),
         option_karst=config_data["Options"].getboolean("option_karst"),
