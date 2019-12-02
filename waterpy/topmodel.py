@@ -1,3 +1,49 @@
+"""Topmodel class
+Class that represents an implementation of a rainfall-runoff model,
+called Topmodel, based initially on a `U.S. Geological Survey`_ version by
+David Wolock (please see `[1]`_). Some modifications have been added in an
+attempt to replicate Topmodel versions by Leon Kaufmann (KyTopmodel) and 
+Tanja Williamson (WATER, please see `[2]`_)
+
+Please see table in docs directory called "lant-to-wolock-conversion-table.rst"
+which contains variable descriptions and units
+
+
+.. [1] Wolock, D.M., "Simulating the variable-source-area concept of
+streamflow generation with the watershed model Topmodel", U.S. Geological
+Survey, Water-Resources Investigations Report 93-4124, 1993.
+
+.. _U.S. Geological Survey: https://www.usgs.gov
+
+.. [2] Williamson, T.N., Lant, J.G., Claggett, P.R., Nystrom, E.A.,
+Milly, P.C.D., Nelson, H.L., Hoffman, S.A., Colarullo, S.J., and Fischer, J.M.,
+2015, Summary of hydrologic modeling for the Delaware River Basin using the
+Water Availability Tool for Environmental Resources (WATER): U.S. Geological
+Survey Scientific Investigations Report 2015–5143, 68 p.,
+http://dx.doi.org/10.3133/sir20155143
+
+:authors: 2019 by Alexander Headman, Jeremiah Lant, see AUTHORS
+:license: CC0 1.0, see LICENSE file for details
+"""
+
+import math
+import numpy as np
+
+from . import hydrocalcs
+from . import infiltration
+from . import utils
+
+
+class Topmodel:
+    """Class that represents a Topmodel based rainfall-runoff model
+    implementation originally by David Wolock (USGS) and subsequent versions
+    by Leon Kauffman (USGS) and Tanja Williamson (USGS).
+
+    Please see references in the module docstring.
+
+    Notes:
+        Temperatures used to set exponent for new evaporation calculation
+    """
     def __init__(self,
                  scaling_parameter,
                  saturated_hydraulic_conductivity,
