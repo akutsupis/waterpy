@@ -181,6 +181,7 @@ This software is provided "AS IS."
 Author
 ------
 
+Alex Headman <AHeadman@usgs.gov>
 Jeremiah Lant <jlant@usgs.gov>
 
 
