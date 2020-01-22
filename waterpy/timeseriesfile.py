@@ -88,7 +88,8 @@ def check_missing_values(data):
     """Check for any missing data values."""
     if data.isna().values.any():
         missing_values = data[data.isna().any(axis=1)]
-        raise TimeseriesFileErrorMissingValues(missing_values)
+        timestamps_near_missing = data.index[missing_values - 1]
+        raise TimeseriesFileErrorMissingValues(missing_values, timestamps_near_missing)
 
 
 def check_timestep(data):

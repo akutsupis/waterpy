@@ -228,12 +228,14 @@ class TimeseriesFileErrorMissingValues(TopmodelpyException):
     """
     Raised when a file is not a properly formatted timeseries csv file.
     """
-    def __init__(self, missing_values):
+    def __init__(self, missing_values, timestamps_near_missing):
         self.message = (
             "Error with timeseries file.\n"
             "Missing values:\n"
             "  {}\n"
-            "".format(missing_values)
+            "Near data:\n"
+            "  {}\n"
+            "".format(missing_values, timestamps_near_missing)
         )
 
 
