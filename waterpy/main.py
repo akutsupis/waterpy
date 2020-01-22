@@ -140,8 +140,7 @@ def preprocess(config_data, parameters, timeseries, twi):
         precip_minus_pet = snowprecip - pet
     else:
         # Calculate the difference between the original precip and pet
-        # precip_minus_pet = timeseries["precipitation"].to_numpy() - pet
-        precip_minus_pet = timeseries["precipitation"].to_numpy()
+        precip_minus_pet = timeseries["precipitation"].to_numpy() - pet
     # Calculate the twi weighted mean
     twi_weighted_mean = hydrocalcs.weighted_mean(values=twi["twi"],
                                                  weights=twi["proportion"])
@@ -168,7 +167,6 @@ def preprocess(config_data, parameters, timeseries, twi):
         "snow_water_equivalence": snow_water_equivalence,
         "twi_weighted_mean": twi_weighted_mean,
         "scaling_parameter_adjusted": scaling_parameter_adjusted,
-        # "aet": aet,
         "basin_area": basin_area
     }
 
@@ -295,8 +293,8 @@ def get_output_dataframe(timeseries, preprocessed_data, topmodel_data):
     if "pet" not in timeseries.columns:
         output_data["pet"] = preprocessed_data["pet"]
     output_data["aet"] = topmodel_data["evaporation_actual"]
-    #output_data["precip_minus_pet"] = preprocessed_data["precip_minus_pet"]
-    output_data["precip_available"] = topmodel_data["precip_available"]
+    output_data["precip_minus_pet"] = preprocessed_data["precip_minus_pet"]
+    #output_data["precip_available"] = topmodel_data["precip_available"]
     output_data["infiltration"] = topmodel_data["infiltration"]
     output_data["infiltration_excess"] = topmodel_data["infiltration_excess"]
     output_data["flow_predicted"] = topmodel_data["flow_predicted"]

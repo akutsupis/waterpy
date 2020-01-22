@@ -361,67 +361,51 @@ class Topmodel:
             self.precip_for_recharge = 0
 
             if self.precip_available[i] <= 0:
-                # All precip for a given day is assigned to evaporation.
-                # Hourly is not triggered.
+                # Either no precip, or all precip evaporates.
+                # Value is assigned to precip for evaporation.
                 self.precip_for_evaporation[i] = (
                     -1 * self.precip_available[i]
                 )
                 infiltration.static_reset(self.inf_class, self.infiltration_array, i)
                 self.infiltration_array[i] = 0
-                hourly_flag = False
 
             elif self.precip_available[i] > 0:
-                # Precip exceeds PET and hourly is considered.
-                self.precip_available[i] = hydrocalcs.randomize_daily_to_hourly(self.precip_available[i])
-                self.temperatures[i] = hydrocalcs.copy_daily_to_hourly(self.temperatures[i])
-                hourly_flag = True
+                self.precip_for_recharge = self.precip_available[i]
 
-                if self.precip_available[i] <= 0:
-                    # Either no precip, or all precip evaporates.
-                    # Value is assigned to precip for evaporation.
-                    self.precip_for_evaporation[i] = (
-                        -1 * self.precip_available[i]
+                # Calculate infiltration
+                r = (self.precip_available[i] / 1000) / self.dt
+                hr_infiltration_array = np.zeros(self.dt)
+                for t in range(1, self.dt + 1):
+                    hr_infiltration_array[t - 1] = infiltration.green_ampt(
+                        t, r, self.capillary_drive, self.xk_0, self.scaling_factor,
+                        self.dt, self.inf_class
                     )
-                    infiltration.static_reset(self.inf_class, self.infiltration_array, i)
-                    self.infiltration_array[i] = 0
+                self.infiltration_array[i] = np.sum(hr_infiltration_array)
 
-                elif self.precip_available[i] > 0:
-                    self.precip_for_recharge = self.precip_available[i]
+            self.infiltration_array[i] = self.infiltration_array[i] * 1000
+            if self.infiltration_array[i] < 0:
+                # if a negative value sneaks through this should take care of it.
+                self.infiltration_array[i] = 0
 
-                    # Calculate infiltration
-                    r = (self.precip_available[i] / 1000) / self.dt
-                    hr_infiltration_array = np.zeros(self.dt)
-                    for t in range(1, self.dt + 1):
-                        hr_infiltration_array[t - 1] = infiltration.green_ampt(
-                            t, r, self.capillary_drive, self.xk_0, self.scaling_factor,
-                            self.dt, self.inf_class
-                        )
-                    self.infiltration_array[i] = np.sum(hr_infiltration_array)
+            self.infiltration_excess[i] = self.precip_available[i] - self.infiltration_array[i]
+            if self.infiltration_excess[i] < 0:
+                self.infiltration_excess[i] = 0
 
-                self.infiltration_array[i] = self.infiltration_array[i] * 1000
-                if self.infiltration_array[i] < 0:
-                    # if a negative value sneaks through this should take care of it.
-                    self.infiltration_array[i] = 0
+            # Remove infiltration excess from precip_for_recharge and push it directly into flow_predicted_overland.
+            # Based on conceptual figure drawing from Jeziorska and Niedzielski (2018), figure 1.
+            self.precip_for_recharge = (
+                    self.precip_for_recharge - self.infiltration_excess[i]
+            )
 
-                self.infiltration_excess[i] = self.precip_available[i] - self.infiltration_array[i]
-                if self.infiltration_excess[i] < 0:
-                    self.infiltration_excess[i] = 0
-
-                # Remove infiltration excess from precip_for_recharge and push it directly into flow_predicted_overland.
-                # Based on conceptual figure drawing from Jeziorska and Niedzielski (2018), figure 1.
-                self.precip_for_recharge = (
-                        self.precip_for_recharge - self.infiltration_excess[i]
-                )
-
-                # Set the et_exponent based on current temperature
-                # Temperature > 15 degrees Celsius means growth
-                # Temperature <= 15 degrees Celsius means dormant
-                if self.temperatures[i] > 15:
-                    # changed from 0.5
-                    self.et_exponent = 0
-                else:
-                    # changed from 5 8/19/2019
-                    self.et_exponent = 0
+            # Set the et_exponent based on current temperature
+            # Temperature > 15 degrees Celsius means growth
+            # Temperature <= 15 degrees Celsius means dormant
+            if self.temperatures[i] > 15:
+                # changed from 0.5
+                self.et_exponent = 0
+            else:
+                # changed from 5 8/19/2019
+                self.et_exponent = 0
 
             # Start of twi increments loop
             for j in range(self.num_twi_increments):
@@ -735,7 +719,6 @@ class Topmodel:
             # ============================
             self.saturation_deficit_avgs[i] = self.saturation_deficit_avg
             self.evaporation_actual[i] = self.evaporations[i][j]
-
 
         # Post processing
         # ===============

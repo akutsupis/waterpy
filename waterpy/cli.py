@@ -3,6 +3,7 @@
 
 import click
 import sys
+import traceback
 
 from waterpy.main import waterpy
 
@@ -46,7 +47,7 @@ def run(options, configfile):
         click.echo("Finished!")
         click.echo("Output saved as specified in the model config file.")
     except Exception as err:
-        click.echo(err)
+        click.echo(err, traceback.print_exc())
         sys.exit(1)
 
     if options.verbose:
