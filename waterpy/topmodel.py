@@ -264,14 +264,17 @@ class Topmodel:
         )
 
         # Maximum root zone water storage - equation 36 in Wolock, 1993
-        # Note: conversion from meters to millimeters,
-        # root zone storage (millimeters)
-        # soil depth (meters)
-        # mm to m conversion is dividing by 1000, not multiplying.
+        # this is a temp fix.
 
-        self.root_zone_storage_max = (
-            (self.soil_depth_roots / 1000) * self.field_capacity_fraction
-        )
+        if self.option_randomize_daily_to_hourly:
+            self.root_zone_storage_max = (
+                self.soil_depth_roots * self.field_capacity_fraction
+            ) / 24
+        else:
+            self.root_zone_storage_max = (
+                    self.soil_depth_roots * self.field_capacity_fraction
+                    )
+
 
     def _initialize_channel_routing_parameters(self):
         """Initialize the channel routing parameters.
@@ -406,10 +409,10 @@ class Topmodel:
             # Temperature <= 15 degrees Celsius means dormant
             if self.temperatures[i] > 15:
                 # changed from 0.5
-                self.et_exponent = 0
+                self.et_exponent = 0.5
             else:
                 # changed from 5 8/19/2019
-                self.et_exponent = 0
+                self.et_exponent = 5
 
             # Start of twi increments loop
             for j in range(self.num_twi_increments):
@@ -606,6 +609,9 @@ class Topmodel:
                     self.root_zone_storage[j] = (
                             self.root_zone_storage[j] - self.evaporation[j]
                     )
+
+                else:
+                    self.evaporation[j] = 0
 
                 # Overland flow
                 # =============
