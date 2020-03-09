@@ -269,7 +269,7 @@ class Topmodel:
         if self.option_randomize_daily_to_hourly:
             self.root_zone_storage_max = (
                 self.soil_depth_roots * self.field_capacity_fraction
-            ) / 24
+            ) / 2400
         else:
             self.root_zone_storage_max = (
                     self.soil_depth_roots * self.field_capacity_fraction
@@ -366,12 +366,9 @@ class Topmodel:
             if self.precip_available[i] <= 0:
                 # Either no precip, or all precip evaporates.
                 # Value is assigned to precip for evaporation.
-                if self.temperatures[i] <= 0:
-                    self.precip_for_evaporation[i] = 0
-                else:
-                    self.precip_for_evaporation[i] = (
-                        -1 * self.precip_available[i]
-                    )
+                self.precip_for_evaporation[i] = (
+                    -1 * self.precip_available[i]
+                )
                 infiltration.static_reset(self.inf_class, self.infiltration_array, i)
                 self.infiltration_array[i] = 0
 
@@ -394,7 +391,9 @@ class Topmodel:
                 # if a negative value sneaks through this should take care of it.
                 self.infiltration_array[i] = 0
 
-            self.infiltration_excess[i] = self.precip_available[i] - self.infiltration_array[i]
+            self.infiltration_excess[i] = (
+                    (self.precip_available[i] - self.infiltration_array[i]) * self.timestep_daily_fraction
+            )
             if self.infiltration_excess[i] < 0:
                 self.infiltration_excess[i] = 0
 
@@ -577,7 +576,7 @@ class Topmodel:
                 # Note: Evaporation is calculated using AET formula from
                 # Table 2 of USGS SIR 20155143 (see reference [2] in
                 # module docstring)
-                if self.precip_for_evaporation[i] > 0 and self.temperatures[i] > 0:
+                if self.precip_for_evaporation[i] > 0:
 
                     self.evaporation[j] = self.precip_for_evaporation[i] * (
                         (self.root_zone_storage[j] / self.root_zone_storage_max)**self.et_exponent
@@ -603,15 +602,15 @@ class Topmodel:
                     self.root_zone_storage[j] = (
                         self.root_zone_storage[j] - self.evaporation[j]
                     )
-                # A bit redundant but it may fix the problem.
-                elif self.precip_for_evaporation[i] > 0 and self.temperatures[i] <= 0:
-                    self.evaporation[j] = 0
-                    self.root_zone_storage[j] = (
-                            self.root_zone_storage[j] - self.evaporation[j]
-                    )
-
-                else:
-                    self.evaporation[j] = 0
+                # # A bit redundant but it may fix the problem.
+                # elif self.precip_for_evaporation[i] > 0 and self.temperatures[i] <= 0:
+                #     self.evaporation[j] = 0
+                #     self.root_zone_storage[j] = (
+                #             self.root_zone_storage[j] - self.evaporation[j]
+                #     )
+                #
+                # else:
+                #     self.evaporation[j] = 0
 
                 # Overland flow
                 # =============
