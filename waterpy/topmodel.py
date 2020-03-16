@@ -269,7 +269,7 @@ class Topmodel:
         if self.option_randomize_daily_to_hourly:
             self.root_zone_storage_max = (
                 self.soil_depth_roots * self.field_capacity_fraction
-            ) / 2400
+            ) / 24
         else:
             self.root_zone_storage_max = (
                     self.soil_depth_roots * self.field_capacity_fraction
@@ -369,6 +369,8 @@ class Topmodel:
                 self.precip_for_evaporation[i] = (
                     -1 * self.precip_available[i]
                 )
+                if self.temperatures[i] <= 0:
+                    self.precip_for_evaporation[i] = 0
                 infiltration.static_reset(self.inf_class, self.infiltration_array, i)
                 self.infiltration_array[i] = 0
 
@@ -609,8 +611,11 @@ class Topmodel:
                 #             self.root_zone_storage[j] - self.evaporation[j]
                 #     )
                 #
-                # else:
-                #     self.evaporation[j] = 0
+                else:
+                    self.evaporation[j] = 0
+                    self.root_zone_storage[j] = (
+                                     self.root_zone_storage[j] - self.evaporation[j]
+                             )
 
                 # Overland flow
                 # =============
