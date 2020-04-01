@@ -149,10 +149,16 @@ def pet_hamon(dates, temperatures, latitude, calib_coeff=1.2):
             (216.7 * saturated_vapor_pressure) / (temperature + 273.3)
         )
 
+        if temperature <= 0:
+        # If temperatures are below freezing PET shouldn't exist.
+
+            potential_evapotranspiration = 0
+
+        else:
         # calculate potential evapotranspiration
-        potential_evapotranspiration = (
-            0.1651 * daytime_length * saturated_vapor_density * calib_coeff
-        )
+            potential_evapotranspiration = (
+                0.1651 * daytime_length * saturated_vapor_density * calib_coeff
+            )
 
         # add to list
         pet.append(potential_evapotranspiration)
@@ -707,7 +713,7 @@ def randomize_daily_to_hourly(values):
     randomized = []
     for value in values:
         # Create random array of 24 hours and add some zeros
-        n_zeros = np.random.randint(1, 24)
+        n_zeros = np.random.randint(1, 12)
         n_non_zeros = 24 #- n_zeros
 
         rand = np.random.random(n_non_zeros)

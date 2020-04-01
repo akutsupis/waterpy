@@ -268,8 +268,8 @@ class Topmodel:
 
         if self.option_randomize_daily_to_hourly:
             self.root_zone_storage_max = (
-                self.soil_depth_roots * self.field_capacity_fraction
-            ) / 24
+                (self.soil_depth_roots * self.field_capacity_fraction) * self.timestep_daily_fraction
+            )
         else:
             self.root_zone_storage_max = (
                     self.soil_depth_roots * self.field_capacity_fraction
@@ -410,10 +410,10 @@ class Topmodel:
             # Temperature <= 15 degrees Celsius means dormant
             if self.temperatures[i] > 15:
                 # changed from 0.5
-                self.et_exponent = 0.5
+                self.et_exponent = 0
             else:
                 # changed from 5 8/19/2019
-                self.et_exponent = 5
+                self.et_exponent = 0
 
             # Start of twi increments loop
             for j in range(self.num_twi_increments):
@@ -517,7 +517,7 @@ class Topmodel:
                             self.unsaturated_zone_storage[j] = (
                                 self.unsaturated_zone_storage[j]
                                 + (self.root_zone_storage[j]
-                                   + self.root_zone_storage_max)
+                                   - self.root_zone_storage_max)
                             )
                             self.root_zone_storage[j] = self.root_zone_storage_max
                         else:
@@ -580,12 +580,13 @@ class Topmodel:
                 # module docstring)
                 if self.precip_for_evaporation[i] > 0:
 
-                    self.evaporation[j] = self.precip_for_evaporation[i] * (
-                        (self.root_zone_storage[j] / self.root_zone_storage_max)**self.et_exponent
+                    self.evaporation[j] = (
+                            self.precip_for_evaporation[i] *
+                            (self.root_zone_storage[j] / self.root_zone_storage_max)**self.et_exponent
                     )
 
-                    if self.evaporation[j] > self.precip_for_evaporation[i]:
-                        self.evaporation[j] = self.precip_for_evaporation[i]
+                    # if self.evaporation[j] > self.precip_for_evaporation[i]:
+                    #     self.evaporation[j] = self.precip_for_evaporation[i]
 
                     # If the precipitation available for evapotranspiration is
                     # greater than the soil root zone storage amount, then
@@ -601,16 +602,11 @@ class Topmodel:
                     # if the condition above is true where the precipitation
                     # available for evapotranspiration is greater than the soil
                     # root zone storage amount
+
                     self.root_zone_storage[j] = (
                         self.root_zone_storage[j] - self.evaporation[j]
                     )
-                # # A bit redundant but it may fix the problem.
-                # elif self.precip_for_evaporation[i] > 0 and self.temperatures[i] <= 0:
-                #     self.evaporation[j] = 0
-                #     self.root_zone_storage[j] = (
-                #             self.root_zone_storage[j] - self.evaporation[j]
-                #     )
-                #
+
                 else:
                     self.evaporation[j] = 0
                     self.root_zone_storage[j] = (
@@ -771,6 +767,6 @@ class Topmodel:
                 hydrocalcs.sum_hourly_to_daily(self.infiltration_excess)
             )
             self.evaporation_actual = (
-                    hydrocalcs.sum_hourly_to_daily(self.evaporation_actual)
+                    hydrocalcs.sum_hourly_to_daily(self.precip_for_evaporation)
             )
 
