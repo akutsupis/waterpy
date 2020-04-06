@@ -62,6 +62,7 @@ class Topmodel:
                  twi_mean,
                  precip_available,
                  temperatures,
+                 pet_hamon,
                  flow_initial=1,
                  timestep_daily_fraction=1,
                  option_channel_routing=True,
@@ -92,6 +93,7 @@ class Topmodel:
         if option_randomize_daily_to_hourly:
             self.option_randomize_daily_to_hourly = option_randomize_daily_to_hourly
             self.precip_available = hydrocalcs.randomize_daily_to_hourly(precip_available)
+            self.pet_hamon = hydrocalcs.randomize_daily_to_hourly(pet_hamon)
             self.temperatures = hydrocalcs.copy_daily_to_hourly(temperatures)
             self.timestep_daily_fraction = 3600 / 86400
 
@@ -100,8 +102,10 @@ class Topmodel:
             self.precip_available = precip_available
             self.temperatures = temperatures
             self.timestep_daily_fraction = timestep_daily_fraction
+            self.pet_hamon = pet_hamon
 
         # Assign parameters
+
         self.scaling_parameter = scaling_parameter
         self.saturated_hydraulic_conductivity = (
             saturated_hydraulic_conductivity
@@ -268,7 +272,7 @@ class Topmodel:
 
         if self.option_randomize_daily_to_hourly:
             self.root_zone_storage_max = (
-                (self.soil_depth_roots * self.field_capacity_fraction) * self.timestep_daily_fraction
+                (self.soil_depth_roots * self.field_capacity_fraction) #* self.timestep_daily_fraction
             )
         else:
             self.root_zone_storage_max = (
@@ -388,16 +392,16 @@ class Topmodel:
                     )
                 self.infiltration_array[i] = np.sum(hr_infiltration_array)
 
-            self.infiltration_array[i] = self.infiltration_array[i] * 1000
-            if self.infiltration_array[i] < 0:
-                # if a negative value sneaks through this should take care of it.
-                self.infiltration_array[i] = 0
-
-            self.infiltration_excess[i] = (
-                    (self.precip_available[i] - self.infiltration_array[i]) * self.timestep_daily_fraction
-            )
+            self.infiltration_excess[i] = self.infiltration_array[i] * 1000 * self.timestep_daily_fraction
             if self.infiltration_excess[i] < 0:
+                # if a negative value sneaks through this should take care of it.
                 self.infiltration_excess[i] = 0
+
+            self.infiltration_array[i] = (
+                    self.precip_available[i] - self.infiltration_array[i]
+            )
+            if self.infiltration_array[i] < 0:
+                self.infiltration_array[i] = 0
 
             # Remove infiltration excess from precip_for_recharge and push it directly into flow_predicted_overland.
             # Based on conceptual figure drawing from Jeziorska and Niedzielski (2018), figure 1.
@@ -610,7 +614,7 @@ class Topmodel:
                 else:
                     self.evaporation[j] = 0
                     self.root_zone_storage[j] = (
-                                     self.root_zone_storage[j] - self.evaporation[j]
+                                     self.root_zone_storage[j] - 0
                              )
 
                 # Overland flow
@@ -735,7 +739,11 @@ class Topmodel:
             # Saving variables of interest
             # ============================
             self.saturation_deficit_avgs[i] = self.saturation_deficit_avg
-            self.evaporation_actual[i] = self.evaporations[i][j]
+            if self.precip_available[i] > 0:
+                self.evaporation_actual[i] = self.pet_hamon[i]
+
+            else:
+                self.evaporation_actual[i] = self.evaporations[i][j]
 
         # Post processing
         # ===============
@@ -755,7 +763,7 @@ class Topmodel:
                 hydrocalcs.sum_hourly_to_daily(self.unsaturated_zone_storages)
             )
             self.root_zone_storages = (
-                hydrocalcs.sum_hourly_to_daily(self.root_zone_storages)
+                hydrocalcs.sum_hourly_to_daily(self.root_zone_storages) * self.timestep_daily_fraction
             )
             self.evaporations = (
                 hydrocalcs.sum_hourly_to_daily(self.evaporations)
@@ -767,6 +775,6 @@ class Topmodel:
                 hydrocalcs.sum_hourly_to_daily(self.infiltration_excess)
             )
             self.evaporation_actual = (
-                    hydrocalcs.sum_hourly_to_daily(self.precip_for_evaporation)
+                    hydrocalcs.sum_hourly_to_daily(self.evaporation_actual)
             )
 

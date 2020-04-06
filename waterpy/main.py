@@ -211,13 +211,14 @@ def run_topmodel(config_data, parameters, timeseries, twi, preprocessed_data):
         twi_saturated_areas=twi["proportion"].to_numpy(),
         twi_mean=preprocessed_data["twi_weighted_mean"],
         precip_available=preprocessed_data["precip_minus_pet"],
-        # pet_hamon=preprocessed_data["pet"],
+        pet_hamon=preprocessed_data["pet"],
         temperatures=timeseries["temperature"].to_numpy(),
         timestep_daily_fraction=preprocessed_data["timestep_daily_fraction"],
         option_channel_routing=config_data["Options"].getboolean("option_channel_routing"),
         option_karst=config_data["Options"].getboolean("option_karst"),
         option_randomize_daily_to_hourly=(
             config_data["Options"].getboolean("option_randomize_daily_to_hourly")
+
         )
     )
 
