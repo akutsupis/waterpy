@@ -61,6 +61,7 @@ class Topmodel:
                  twi_saturated_areas,
                  twi_mean,
                  precip_available,
+                 precip,
                  temperatures,
                  pet_hamon,
                  flow_initial=1,
@@ -93,7 +94,8 @@ class Topmodel:
         if option_randomize_daily_to_hourly:
             self.option_randomize_daily_to_hourly = option_randomize_daily_to_hourly
             self.precip_available = hydrocalcs.randomize_daily_to_hourly(precip_available)
-            self.pet_hamon = hydrocalcs.randomize_daily_to_hourly(pet_hamon)
+            self.pet_hamon = hydrocalcs.chop_daily_to_hourly(pet_hamon)
+            self.precip = hydrocalcs.chop_daily_to_hourly(precip)
             self.temperatures = hydrocalcs.copy_daily_to_hourly(temperatures)
             self.timestep_daily_fraction = 3600 / 86400
 
@@ -182,6 +184,7 @@ class Topmodel:
                                         self.num_twi_increments))
 
         self.evaporation_actual = utils.nans(self.num_timesteps)
+        self.root_zone_avg = utils.nans(self.num_timesteps)
 
         # Karst option
         self.option_karst = option_karst
@@ -268,16 +271,11 @@ class Topmodel:
         )
 
         # Maximum root zone water storage - equation 36 in Wolock, 1993
-        # this is a temp fix.
 
-        if self.option_randomize_daily_to_hourly:
-            self.root_zone_storage_max = (
-                (self.soil_depth_roots * self.field_capacity_fraction) #* self.timestep_daily_fraction
-            )
-        else:
-            self.root_zone_storage_max = (
-                    self.soil_depth_roots * self.field_capacity_fraction
-                    )
+        self.root_zone_storage_max = (
+                # self.soil_depth_roots * self.field_capacity_fraction
+                self.soil_depth_roots * self.available_water_holding_capacity
+                )
 
 
     def _initialize_channel_routing_parameters(self):
@@ -413,11 +411,13 @@ class Topmodel:
             # Temperature > 15 degrees Celsius means growth
             # Temperature <= 15 degrees Celsius means dormant
             if self.temperatures[i] > 15:
-                # changed from 0.5
-                self.et_exponent = 0
+                # changed from 0.5, changed to 1 (4/9/2020).
+                # Changed to 0.9 after some discussion on (4/14/2020)
+                self.et_exponent = 0.9
             else:
                 # changed from 5 8/19/2019
-                self.et_exponent = 0
+                # Changed to 2 based on Tanja's notes from 2014 notes. (4/14/2020)
+                self.et_exponent = 2
 
             # Start of twi increments loop
             for j in range(self.num_twi_increments):
@@ -738,12 +738,15 @@ class Topmodel:
 
             # Saving variables of interest
             # ============================
+            self.root_zone_avg[i] = self.root_zone_storages[i][j]
             self.saturation_deficit_avgs[i] = self.saturation_deficit_avg
             if self.precip_available[i] > 0:
                 self.evaporation_actual[i] = self.pet_hamon[i]
-
             else:
-                self.evaporation_actual[i] = self.evaporations[i][j]
+                if self.precip[i] > 0:
+                    self.evaporation_actual[i] = self.evaporations[i][j] + self.precip[i]
+                else:
+                    self.evaporation_actual[i] = self.evaporations[i][j]
 
         # Post processing
         # ===============
@@ -777,4 +780,6 @@ class Topmodel:
             self.evaporation_actual = (
                     hydrocalcs.sum_hourly_to_daily(self.evaporation_actual)
             )
-
+            self.root_zone_avg = (
+                hydrocalcs.sum_hourly_to_daily(self.root_zone_avg) * self.timestep_daily_fraction
+            )

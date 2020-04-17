@@ -713,7 +713,7 @@ def randomize_daily_to_hourly(values):
     randomized = []
     for value in values:
         # Create random array of 24 hours and add some zeros
-        n_zeros = np.random.randint(1, 12)
+        n_zeros = 0 #np.random.randint(1, 12)
         n_non_zeros = 24 - n_zeros
 
         rand = np.random.random(n_non_zeros)
@@ -750,6 +750,25 @@ def copy_daily_to_hourly(values):
         hourly_array = np.ones(24) * value
 
         # Loop through array and append hourly values to list
+        for hourly_value in hourly_array:
+            copied.append(hourly_value)
+
+    return np.array(copied)
+
+
+def chop_daily_to_hourly(values):
+    """Create hourly values from daily values by evenly chopping each daily value
+    and spreading it across an hourly array.  This is akin to the fortran version
+    of the model.
+
+    :param values: Daily values from timeseries file.
+    :type values: numpy.ndarray
+    :rtype: numpy.ndarray
+    """
+    copied = []
+    for value in values:
+        hourly_array = np.ones(24) * value / 24
+
         for hourly_value in hourly_array:
             copied.append(hourly_value)
 

@@ -211,6 +211,7 @@ def run_topmodel(config_data, parameters, timeseries, twi, preprocessed_data):
         twi_saturated_areas=twi["proportion"].to_numpy(),
         twi_mean=preprocessed_data["twi_weighted_mean"],
         precip_available=preprocessed_data["precip_minus_pet"],
+        precip=timeseries["precipitation"],
         pet_hamon=preprocessed_data["pet"],
         temperatures=timeseries["temperature"].to_numpy(),
         timestep_daily_fraction=preprocessed_data["timestep_daily_fraction"],
@@ -236,7 +237,8 @@ def run_topmodel(config_data, parameters, timeseries, twi, preprocessed_data):
         "evaporations": topmodel.evaporations,
         "infiltration_excess": topmodel.infiltration_excess,
         "evaporation_actual": topmodel.evaporation_actual,
-        "precip_available": topmodel.precip_available
+        "precip_available": topmodel.precip_available,
+        "root_zone_avg": topmodel.root_zone_avg
     }
 
     return topmodel_data
@@ -295,9 +297,9 @@ def get_output_dataframe(timeseries, preprocessed_data, topmodel_data):
         output_data["pet"] = preprocessed_data["pet"]
     output_data["aet"] = topmodel_data["evaporation_actual"]
     output_data["precip_minus_pet"] = preprocessed_data["precip_minus_pet"]
-    #output_data["precip_available"] = topmodel_data["precip_available"]
     output_data["infiltration"] = topmodel_data["infiltration"]
     output_data["infiltration_excess"] = topmodel_data["infiltration_excess"]
+    output_data["root_zone_avg"] = topmodel_data["root_zone_avg"]
     output_data["flow_predicted"] = topmodel_data["flow_predicted"]
     output_data["saturation_deficit_avgs"] = topmodel_data["saturation_deficit_avgs"]
 

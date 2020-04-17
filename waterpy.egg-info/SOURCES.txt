@@ -3,7 +3,6 @@ setup.py
 waterpy/__init__.py
 waterpy/cli.py
 waterpy/exceptions.py
-waterpy/gooey_1.py
 waterpy/hydrocalcs.py
 waterpy/infiltration.py
 waterpy/main.py
@@ -14,6 +13,7 @@ waterpy/report.py
 waterpy/timeseriesfile.py
 waterpy/topmodel.py
 waterpy/twifile.py
+waterpy/ui.py
 waterpy/utils.py
 waterpy.egg-info/PKG-INFO
 waterpy.egg-info/SOURCES.txt
