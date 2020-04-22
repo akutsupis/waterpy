@@ -6,6 +6,7 @@ class ui:
     """Likely a temporary place holder while we work out how to pass
     between pyQT and here """
     input_directory = 'dir'
+    output_directory = 'dir'
     characteristics = 'file'
     parameters = 'file'
     timeseries = 'file'
@@ -28,6 +29,14 @@ def ini_write(file, ui):
                   "parameters_land_type_file = ${Inputs:input_dir}" + "\\{} \n".format(ui.parameters),
                   "timeseries_file = ${Inputs:input_dir}" + "\\{} \n".format(ui.timeseries),
                   "twi_file = ${Inputs:input_dir}\\" + "{} \n".format(ui.twi),
+                  "\n[Outputs] \n",
+                  "output_dir = {} \n".format(ui.output_directory),
+                  "output_filename = output.csv \n",
+                  "output_filename_saturation_deficit_locals = output_saturation_deficit_locals.csv \n",
+                  "output_filename_unsaturated_zone_storages = output_unsaturated_zone_storages.csv \n",
+                  "output_filename_root_zone_storages = output_root_zone_storages.csv \n",
+                  "output_filename_evaporations = output_evaporations.csv \n",
+                  "output_report = report.html \n",
                   "\n[Options] \n",
                   "option_pet = {} \n".format(ui.pet),
                   "option_snowmelt = {}\n".format(ui.snow),
