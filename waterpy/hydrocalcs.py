@@ -463,10 +463,11 @@ def snowmelt_temperature_index(temperatures,
     return melt_rate_coeff * (temperatures - temperature_cutoff)
 
 
-def runoff(precipitation, curve_number):
+def runoff(temperature, precipitation, curve_number, amc):
     """Calculate the amount of runoff using the SCS runoff curve number method.
-
-    :param temperatures: precipitation, in mm
+    :param temperature: temperature, in C
+    :type temperature: numpy.ndarray
+    :param precipitation: precipitation, in mm
     :type precipitation: numpy.ndarray
     :param curve_number: curve number, dimensionless
     :type precipitation: float
@@ -510,6 +511,31 @@ def runoff(precipitation, curve_number):
     Technical Release 55 (TR55), June 1986
     https://www.nrcs.usda.gov/Internet/FSE_DOCUMENTS/stelprdb1044171.pdf
     """
+    if temperature < 15:
+        # non-growing season
+        if amc > 12.7:
+            if amc > 27.94:
+                # wet and cold
+                curve_number = 23 * curve_number / (10 + 0.13 * curve_number)
+            else:
+                # normal and cold
+                curve_number = curve_number
+        else:
+            # dry and cold
+            curve_number = curve_number * 4.2 / (10 - 0.058 * curve_number)
+    else:
+        if amc > 35.56:
+            if amc > 53.34:
+                # wet and warm
+                curve_number = 23 * curve_number / (10 + 0.13 * curve_number)
+            else:
+                # normal and warm
+                curve_number = curve_number
+        else:
+            # dry and warm
+            curve_number = curve_number * 4.2 / (10 - 0.058 * curve_number)
+
+
     precip_inches = precipitation / 25.4  # mm to inches
 
     potential_retention = (1000 / curve_number) - 10
@@ -520,7 +546,6 @@ def runoff(precipitation, curve_number):
     runoff = runoff_inches * 25.4  # inches to mm
 
     return runoff
-
 
 def weighted_mean(values, weights):
     """Calculate the weighted mean.
@@ -788,3 +813,11 @@ def sum_hourly_to_daily(values):
     values = values.reshape(new_shape)
 
     return np.sum(values, axis=1)
+
+
+def bind_hourly_to_daily(values):
+
+    new_shape = (-1, 24) + values.shape[1:]
+    values = values.reshape(new_shape)
+
+    return np.average(values, axis=1)

@@ -238,6 +238,9 @@ def run_topmodel(config_data, parameters, timeseries, twi, preprocessed_data):
         "infiltration_excess": topmodel.infiltration_excess,
         "evaporation_actual": topmodel.evaporation_actual,
         "precip_available": topmodel.precip_available,
+        "pex_flow": topmodel.pex_flow,
+        "sub_flow": topmodel.sub_flow,
+        "imp_flow" : topmodel.flow_predicted_impervious,
         "root_zone_avg": topmodel.root_zone_avg
     }
 
@@ -299,6 +302,9 @@ def get_output_dataframe(timeseries, preprocessed_data, topmodel_data):
     output_data["precip_minus_pet"] = preprocessed_data["precip_minus_pet"]
     output_data["infiltration"] = topmodel_data["infiltration"]
     output_data["infiltration_excess"] = topmodel_data["infiltration_excess"]
+    output_data["pex_flow"] = topmodel_data["pex_flow"]
+    output_data["sub_flow"] = topmodel_data["sub_flow"]
+    output_data["imp_flow"] = topmodel_data["imp_flow"]
     output_data["root_zone_avg"] = topmodel_data["root_zone_avg"]
     output_data["flow_predicted"] = topmodel_data["flow_predicted"]
     output_data["saturation_deficit_avgs"] = topmodel_data["saturation_deficit_avgs"]
