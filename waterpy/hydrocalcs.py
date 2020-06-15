@@ -511,6 +511,8 @@ def runoff(temperature, precipitation, curve_number, amc):
     Technical Release 55 (TR55), June 1986
     https://www.nrcs.usda.gov/Internet/FSE_DOCUMENTS/stelprdb1044171.pdf
     """
+    # might need a 0.1 delay timing on the storage in this section.
+
     if temperature < 15:
         # non-growing season
         if amc > 12.7:
@@ -534,7 +536,6 @@ def runoff(temperature, precipitation, curve_number, amc):
         else:
             # dry and warm
             curve_number = curve_number * 4.2 / (10 - 0.058 * curve_number)
-
 
     precip_inches = precipitation / 25.4  # mm to inches
 

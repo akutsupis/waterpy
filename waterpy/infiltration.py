@@ -1,142 +1,112 @@
-"""
-Module handling infiltration calculation.
-References:
-Beven (1984)
-Morel-Seytoux and Khanji (1974)
-"""
-
 import math
 
-class expinf:
-    """
-    Initialize and store static variables
-    """
-    const = 0
-    ponding = 0
-    cumf = 0
-    cumf2 = 0
+class Statics:
+    cumi = 0
+    i_end = 0
+    lamb = 0
     tp = 0
-    maxiter = 50
+    pond = 0
 
 
-def green_ampt(t, R, CD, xk0, scaling_factor, dt, expinf):
-    """
-    t: Time increment (input)
-    R: Precp in m/h (input)
-    xk0: saturated_hydraulic_con/24/1000 (m/hr) (input).
-    CD: Capillary drive, from Beven via Morel-Seytoux (input)
-    scaling_factor: scaling_parameter in m (scaling_parameter/1000) (input)
-    dt: Calculation time step in relation to reporting timestep, in this case hr/day (input)
-    expinf: object storing the values of static variables (input)
-    f1: Infiltration at the beginning of the time step (m)
-    f2: Infiltration at the end of the timestep (m)
-    r2: Infiltration rate (m/dt)
-    tp: Estimated time to ponding
-    cumf = Cumulative infiltration at the start of a time step (m)
-    cumf2 = Cumulative infiltration at the end of a time step, aka big F (m)
-    f = df in Beven.  Little f in the papers. (m)
-    """
+def infiltration(time, dt, ppt, k0, cd, m, statics):
 
-    def calc_cnst(cumf2, CD, szf):
-        """
-        Private function to calculate C
-        """
+    f1 = 0.0
+    t = time
+    if ppt <= 0:
+        # no rain.
+        statics.cumi = 0
+        statics.lamb = 0
+        statics.tp = 0
+        statics.i_end = 0
+        statics.pond = 0
 
-        fact = 1
-        const = 0
-        fc = cumf2 + CD
-        for i in range(1, 11):
-            fact = fact * i
-            add = (fc * szf) ** i / (i * fact)
-            const = const + add
-        const = math.log(fc) - (math.log(fc) + const) / math.exp(CD / szf)
-        return const
-    f1 = 0
-    if expinf.ponding == 0:
-        if expinf.cumf > 0:
-            f1 = expinf.cumf
-            r2 = -xk0 / scaling_factor * (CD + f1) / (1 - math.exp(f1 / scaling_factor))
-            if R > r2:
-                # Ponding starts
-                expinf.cumf2 = expinf.cumf
-                expinf.tp = t - dt
-                expinf.ponding = 1
-                expinf.const = 0
-                expinf.const = calc_cnst(expinf.cumf2, CD, scaling_factor)
+        return 0.0
 
-        f2 = expinf.cumf + R * dt
-        r2 = -xk0 / scaling_factor * (CD + f2) / (1 - math.exp(f2 / scaling_factor))
+    if statics.pond == 0:
+        if statics.cumi > 0:
+            f1 = statics.cumi
+            nf = -k0 * m * (cd + f1) / (1 - math.exp(f1 * m))
+            if nf < ppt:
+                statics.i_end = statics.cumi
+                statics.tp = t - dt
+                statics.pond = 1
+                statics.lamb = 0
+        f2 = statics.cumi + ppt * dt
+        nf = (-k0 * m * (cd + f2)) / (1 - math.exp(f2 * m))
+        if f2 == 0.0 or nf > ppt:
+            didt = ppt
+            statics.cumi = statics.cumi + didt * dt
+            statics.ponding = 0
+            return didt
 
-        if f2 == 0 or R < r2:
-            # No ponding, everything infiltrates
-            f = R
-            expinf.cumf = expinf.cumf + f * dt
-            expinf.ponding = 0
-            return f
-
-        # set up the estimated time to ponding
-        expinf.cumf2 = expinf.cumf + r2 * dt
-        for i in range(1, expinf.maxiter):
-            r2 = -xk0 / scaling_factor * (CD + expinf.cumf2) / (1 - math.exp(expinf.cumf2 / scaling_factor))
-            if r2 > R:
-                f1 = expinf.cumf2
-                expinf.cumf2 = (expinf.cumf2 + f2) / 2
-                diff = expinf.cumf2 - f1
+        statics.i_end = statics.cumi + nf * dt
+        for i in range(0, 21):
+            nf = -k0 * m * (cd + statics.i_end) / (1 - math.exp(statics.i_end * m))
+            if nf > ppt:
+                f1 = statics.i_end
+                statics.i_end = (statics.i_end + f2) / 2.0
+                df = statics.i_end - f1
             else:
-                f2 = expinf.cumf2
-                expinf.cumf2 = (expinf.cumf2 + f1) / 2
-                diff = expinf.cumf2 - f2
-        expinf.tp = t - dt + (expinf.cumf2 - expinf.cumf) / R
-        if expinf.tp > t:
-            f = R
-            expinf.cumf = expinf.cumf + f * dt
-            expinf.ponding = 0
-            return f
+                f2 = statics.i_end
+                statics.i_end = (statics.i_end + f1) / 2.0
+                df = statics.i_end - f2
+            if abs(df) <= 0.00001:
+                break
+            if i == 20:
+                print("Warning: max iter exceeded at {}".format(t))
 
-    if expinf.const == 0:
-        # At this point ponding is occurring, therefore C needs to exist and ponding flag is triggered.
-        expinf.const = calc_cnst(expinf.cumf2, CD, scaling_factor)
-        expinf.cumf2 = expinf.cumf2 + R * (t - expinf.tp) / 2
-        expinf.ponding = 1
+        statics.tp = t - dt + (statics.i_end - statics.cumi) / ppt
+        if statics.tp > t:
+            didt = ppt
+            statics.cumi = statics.cumi + didt
+            statics.ponding = 0
+            return didt
 
-    # Ponding infiltration via Newton-Raphson.
-    for i in range(1, expinf.maxiter):
-        fc = expinf.cumf2 + CD
-        sum1 = 0
+        statics.pond = 1
+
+    if statics.lamb == 0:
+        fact = 1
+        icd = statics.i_end + cd
+        for j in range(1, 11):
+            fact = fact * j
+            add = (icd * m) ** j / (j * fact)
+            statics.lamb = statics.lamb + add
+        statics.lamb = math.log(icd) - (math.log(icd) + statics.lamb) / math.exp(cd * m)
+
+        statics.ponding = 1
+
+    statics.i_end = statics.i_end + ppt * (t - statics.tp) / 2.0
+    for i in range(0, 21):
+        icd = statics.i_end + cd
+        add = 0
         fact = 1
         for j in range(1, 11):
             fact = fact * j
-            add = (scaling_factor / fc) ** j / (j * fact)
-            sum1 = sum1 + add
-        f1 = -(math.log(fc) - (math.log(fc) + sum1) / math.exp(CD / scaling_factor) - expinf.const
-               ) / (xk0 / scaling_factor) - (t - expinf.tp)
-        f2 = (math.exp(expinf.cumf2 / scaling_factor) - 1) / (fc * xk0 / scaling_factor)
-        diff = - f1 / f2
-        expinf.cumf2 = expinf.cumf2 + diff
+            add_0 = math.pow((icd * m), j) / (j * fact)
+            add = add + add_0
+        f1 = -(math.log(icd) - (math.log(icd) + add) / math.exp(cd * m) - statics.lamb) / (k0 * m) - (
+                    t - statics.tp)
+        f2 = (math.exp(statics.i_end * m) - 1) / (icd * k0 * m)
+        df = -f1 / f2
+        statics.i_end = statics.i_end + df
+        if abs(df) <= 0.000001:
+            break
 
-    if expinf.cumf2 - expinf.cumf < R * dt:
-        f = (expinf.cumf2 - expinf.cumf) / dt
-        expinf.cumf = expinf.cumf2
-        expinf.cumf2 = expinf.cumf2 + f * dt
-        return f
+    if statics.i_end < statics.cumi + ppt:
+        didt = (statics.i_end - statics.cumi)
+        statics.cumi = statics.i_end
+        statics.i_end = statics.i_end / dt
+        statics.pond = 1
+
     else:
-        f = R
-        expinf.cumf = expinf.cumf + f * dt
-        expinf.ponding = 0
-        return f
+        didt = ppt * dt
+        statics.cumi = statics.cumi + didt
+        statics.pond = 0
+    return didt
 
-
-def static_reset(expinf, infil_array, i):
-
-    """Resets variables in there is in precipitation
-    expinf: Class containing static variables
-    infil_array: Daily infiltration array
-    i: time step index
-    """
-
-    expinf.cumf = 0
-    expinf.cumf2 = 0
-    expinf.ponding = 0
-    expinf.tp = 0
-    expinf.const = 0
-    infil_array[i] = 0
+def static_reset(statics):
+    statics.cumi = 0
+    statics.lamb = 0
+    statics.tp = 0
+    statics.i_end = 0
+    statics.pond = 0

@@ -193,7 +193,7 @@ def check_impervious_area(value):
     :param value: impervious area value.
     :type value: float
     """
-    if not value > 0 or not value < 1:
+    if not value >= 0 or not value < 1:
         raise ParametersFileErrorInvalidImperviousArea(value)
 
 

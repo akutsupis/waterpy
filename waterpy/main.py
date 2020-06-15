@@ -143,7 +143,7 @@ def preprocess(config_data, parameters, timeseries, twi):
         precip_minus_pet = timeseries["precipitation"].to_numpy() - pet
     # Calculate the twi weighted mean
     twi_weighted_mean = hydrocalcs.weighted_mean(values=twi["twi"],
-                                                 weights=twi["proportion"])
+                                                 weights=twi["proportion"]) / 1000
 
     # Adjust the scaling parameter by the spatial coefficient
     scaling_parameter_adjusted = (
@@ -152,12 +152,10 @@ def preprocess(config_data, parameters, timeseries, twi):
     )
     #Define basin area value
     basin_area = parameters["basin"]["basin_area_total"]["value"]
-    
-    # #Define aet from Timeseries
-    # aet=timeseries["aet"].to_numpy()
 
     # Return a dict of calculated data
     preprocessed_data = {
+        #TODO: add in preprocessing for impervious surface (input value for LitMill is 0.04%)
         "timestep_daily_fraction": timestep_daily_fraction,
         "pet": pet,
         "precip_minus_pet": precip_minus_pet,
@@ -191,6 +189,7 @@ def run_topmodel(config_data, parameters, timeseries, twi, preprocessed_data):
     # Initialize Topmodel
     topmodel = Topmodel(
         scaling_parameter=preprocessed_data["scaling_parameter_adjusted"],
+        raw_scaling_parameter=parameters["basin"]["scaling_parameter"]["value"],
         saturated_hydraulic_conductivity=(
             parameters["basin"]["saturated_hydraulic_conductivity"]["value"]
         ),
@@ -238,10 +237,11 @@ def run_topmodel(config_data, parameters, timeseries, twi, preprocessed_data):
         "infiltration_excess": topmodel.infiltration_excess,
         "evaporation_actual": topmodel.evaporation_actual,
         "precip_available": topmodel.precip_available,
-        "pex_flow": topmodel.pex_flow,
+        "q_root": topmodel.q_root,
         "sub_flow": topmodel.sub_flow,
-        "imp_flow" : topmodel.flow_predicted_impervious,
-        "root_zone_avg": topmodel.root_zone_avg
+        "imp_flow": topmodel.flow_predicted_impervious,
+        "root_zone_avg": topmodel.root_zone_avg,
+        "excesses": topmodel.precip_excesses_op
     }
 
     return topmodel_data
@@ -302,7 +302,7 @@ def get_output_dataframe(timeseries, preprocessed_data, topmodel_data):
     output_data["precip_minus_pet"] = preprocessed_data["precip_minus_pet"]
     output_data["infiltration"] = topmodel_data["infiltration"]
     output_data["infiltration_excess"] = topmodel_data["infiltration_excess"]
-    output_data["pex_flow"] = topmodel_data["pex_flow"]
+    output_data["q_root"] = topmodel_data["q_root"]
     output_data["sub_flow"] = topmodel_data["sub_flow"]
     output_data["imp_flow"] = topmodel_data["imp_flow"]
     output_data["root_zone_avg"] = topmodel_data["root_zone_avg"]
@@ -368,7 +368,7 @@ def write_output_csv(df, filename):
         "snowprecip": "snowprecip (mm/day)",
     })
     df.to_csv(filename,
-              float_format="%.2f")
+              float_format="%.16f")
 
 
 def write_output_matrices_csv(config_data, timeseries, topmodel_data):
@@ -404,6 +404,11 @@ def write_output_matrices_csv(config_data, timeseries, topmodel_data):
                      index=timeseries.index)
     )
 
+    excesses_df = (
+        pd.DataFrame(topmodel_data["excesses"],
+                     index=timeseries.index)
+    )
+
     saturation_deficit_locals_df.to_csv(
         PurePath(
             config_data["Outputs"]["output_dir"],
@@ -418,7 +423,7 @@ def write_output_matrices_csv(config_data, timeseries, topmodel_data):
             config_data["Outputs"]["output_dir"],
             config_data["Outputs"]["output_filename_unsaturated_zone_storages"]
         ),
-        float_format="%.2f",
+        float_format="%.16f",
         header=header,
     )
 
@@ -427,7 +432,7 @@ def write_output_matrices_csv(config_data, timeseries, topmodel_data):
             config_data["Outputs"]["output_dir"],
             config_data["Outputs"]["output_filename_root_zone_storages"]
         ),
-        float_format="%.2f",
+        float_format="%.16f",
         header=header,
     )
 
@@ -436,11 +441,18 @@ def write_output_matrices_csv(config_data, timeseries, topmodel_data):
             config_data["Outputs"]["output_dir"],
             config_data["Outputs"]["output_filename_evaporations"]
         ),
-        float_format="%.2f",
+        float_format="%.16f",
         header=header,
     )
 
-
+    excesses_df.to_csv(
+        PurePath(
+            config_data["Outputs"]["output_dir"],
+            config_data["Outputs"]["output_filename_excesses"]
+        ),
+        float_format="%.16f",
+        header=header,
+    )
 def plot_output_data(df, comparison_data, path):
     """Plot output timeseries."""
     for key, series in df.iteritems():

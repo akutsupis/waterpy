@@ -34,6 +34,7 @@ from . import infiltration
 from . import utils
 
 
+
 class Topmodel:
     """Class that represents a Topmodel based rainfall-runoff model
     implementation originally by David Wolock (USGS) and subsequent versions
@@ -46,6 +47,7 @@ class Topmodel:
     """
     def __init__(self,
                  scaling_parameter,
+                 raw_scaling_parameter,
                  saturated_hydraulic_conductivity,
                  saturated_hydraulic_conductivity_multiplier,
                  macropore_fraction,
@@ -64,7 +66,7 @@ class Topmodel:
                  precip,
                  temperatures,
                  pet_hamon,
-                 flow_initial=1,
+                 flow_initial,
                  timestep_daily_fraction=1,
                  option_channel_routing=True,
                  option_karst=False,
@@ -93,7 +95,7 @@ class Topmodel:
         # Timestep daily fraction is 3600 seconds per hour / 86400 seconds per day
         if option_randomize_daily_to_hourly:
             self.option_randomize_daily_to_hourly = option_randomize_daily_to_hourly
-            self.precip_available = hydrocalcs.randomize_daily_to_hourly(precip_available)
+            self.precip_available = hydrocalcs.chop_daily_to_hourly(precip_available)
             self.pet_hamon = hydrocalcs.chop_daily_to_hourly(pet_hamon)
             self.precip = hydrocalcs.chop_daily_to_hourly(precip)
             self.temperatures = hydrocalcs.copy_daily_to_hourly(temperatures)
@@ -102,6 +104,7 @@ class Topmodel:
         else:
             self.option_randomize_daily_to_hourly = option_randomize_daily_to_hourly
             self.precip_available = precip_available
+            self.precip = precip
             self.temperatures = temperatures
             self.timestep_daily_fraction = timestep_daily_fraction
             self.pet_hamon = pet_hamon
@@ -109,6 +112,7 @@ class Topmodel:
         # Assign parameters
 
         self.scaling_parameter = scaling_parameter
+        self.raw_scaling_parameter = raw_scaling_parameter
         self.saturated_hydraulic_conductivity = (
             saturated_hydraulic_conductivity
         )
@@ -164,8 +168,8 @@ class Topmodel:
         # Initial flow
         # Note: initial flow has default value of 1 mm/day
         self.flow_initial = flow_initial * self.timestep_daily_fraction
-        if self.flow_initial < 0.01:
-            self.flow_initial = 0.01
+        if self.flow_initial < 0.1:
+            self.flow_initial = 0.1
 
         # Watershed average storage deficit
         self.saturation_deficit_avgs = np.zeros(self.num_timesteps)
@@ -178,6 +182,8 @@ class Topmodel:
                                               self.num_twi_increments))
         self.unsaturated_zone_storage = None
         self.root_zone_storage = None
+        self.precip_excesses_op = utils.nans((self.num_timesteps,
+                                           self.num_twi_increments))
 
         # Variables used in self.run() method
         self.saturation_deficit_locals = utils.nans((self.num_timesteps,
@@ -206,6 +212,7 @@ class Topmodel:
         self.flow_predicted_stream = None
         self.flow_predicted_karst = None
         self.subsurface_flow_rate_ratio = None
+        self.zone_infiltration = None
         self.infiltration_array = np.zeros(self.num_timesteps)
         self.evaporation = np.zeros(self.num_twi_increments)
         self.precip_for_evaporation = np.zeros(self.num_timesteps)
@@ -213,6 +220,7 @@ class Topmodel:
         # Unit testing variables
         self.pex_flow = np.zeros(self.num_timesteps)
         self.sub_flow = np.zeros(self.num_timesteps)
+        self.q_root = np.zeros(self.num_timesteps)
 
         # Initialize model
         self._initialize()
@@ -257,7 +265,6 @@ class Topmodel:
             self.field_capacity_fraction - self.wilting_point_fraction
         )
         self.gravity_drained_porosity = (
-            #  self.porosity_fraction - self.available_water_holding_capacity
             self.porosity_fraction - self.field_capacity_fraction
         )
 
@@ -282,7 +289,6 @@ class Topmodel:
         # Maximum root zone water storage - equation 36 in Wolock, 1993
 
         self.root_zone_storage_max = (
-                # self.soil_depth_roots * self.field_capacity_fraction
                 self.soil_depth_roots * self.available_water_holding_capacity
                 )
 
@@ -321,13 +327,13 @@ class Topmodel:
 
         # Watershed average storage deficit
         self.saturation_deficit_avg = (
-            -1 * math.log(self.flow_initial / self.flow_subsurface_max)
+            -1 * math.log(self.flow_initial / (self.flow_subsurface_max / 24))
             * self.scaling_parameter
         )
 
+
     def _initialize_soil_zone_storages(self):
         """Initialize the unsaturated zone and root zone storages."""
-
         # self.unsaturated_zone_storage: the amount of soil water available
         # for drainage
         # self.root_zone_storage: the amount of water stored in root zone
@@ -342,24 +348,34 @@ class Topmodel:
         # Capillary drive is from Beven (1984) via Morel-Seytoux and Khanji (1974)
         # DT is the relation between the calculation interval (hourly) and reporting interval (daily)
         self.capillary_drive = 0.036
-        self.xk_0 = (
-            (self.saturated_hydraulic_conductivity/1000)
-        )
+        self.k0 = (
+            (self.saturated_hydraulic_conductivity/24/1000))
+        self.k_coef = 14
+        self.k_zones = 9
+        self.e_xk = math.log(self.k0)
+        self.sigma = math.sqrt(math.log(self.k_coef**2+1))
+        self.k_dist = [math.exp(self.e_xk+((i+1)-5)*self.sigma) for i in range(self.k_zones)]
+        self.ak_zones = [2.33000E-04, 5.97800E-03, 6.05970E-02, 2.41730E-01, 3.82924E-01,
+                         2.41730E-01, 6.05970E-02, 5.97800E-03, 2.33000E-04]
         self.scaling_factor = (
-                self.scaling_parameter / 1000
+                1 / (self.raw_scaling_parameter / 1000)
         )
-        self.dt = 24
-        self.inf_class = infiltration.expinf
+        self.dt = 1
+        self.inf_class = infiltration.Statics
         self.infiltration_excess = np.zeros(self.num_timesteps)
+
+
 
     def run(self):
         """Calculate water fluxes and flow prediction."""
         # Start of timestep loop
         for i in range(self.num_timesteps):
+
             # Initialize predicted flows, precipitation in excess
             # of evapotranspiration and field-capacity storage, and
             # local saturation deficit
             self.qroot = 0
+            self.return_flow = 0
             self.flow_predicted_overland = 0
             self.flow_predicted_vertical_drainage_flux = 0
             self.flow_predicted_karst = 0
@@ -377,6 +393,9 @@ class Topmodel:
             # If precip_available = 0 => no surplus precip
 
             self.precip_for_recharge = 0
+            self.precip_for_evaporation[i] = 0
+            self.zone_infiltration = 0
+
 
             if self.precip_available[i] <= 0:
                 # Either no precip, or all precip evaporates.
@@ -386,39 +405,42 @@ class Topmodel:
                 )
                 if self.temperatures[i] <= 0:
                     self.precip_for_evaporation[i] = 0
-                infiltration.static_reset(self.inf_class, self.infiltration_array, i)
+                infiltration.static_reset(self.inf_class)
                 self.infiltration_array[i] = 0
+                self.zone_infiltration = 0
 
             elif self.precip_available[i] > 0:
                 self.precip_for_evaporation[i] = 0
                 self.precip_for_recharge = self.precip_available[i]
 
                 # Calculate infiltration
-                r = (self.precip_for_recharge / 1000) / self.dt
-                hr_infiltration_array = np.zeros(self.dt)
-                for t in range(1, self.dt + 1):
-                    hr_infiltration_array[t - 1] = infiltration.green_ampt(
-                        t, r, self.capillary_drive, self.xk_0, self.scaling_factor,
-                        self.dt, self.inf_class
+                t = i + 1
+                ppt = self.precip_for_recharge / 1000
+                if ppt <= 0:
+                    self.zone_infiltration = 0
+                    infiltration.static_reset(self.inf_class)
+                else:
+                    infiltrate = infiltration.infiltration(
+                        t, self.dt, ppt, self.k_dist[0], self.capillary_drive, self.scaling_factor, self.inf_class
                     )
-                self.infiltration_array[i] = np.sum(hr_infiltration_array)
-
-            self.infiltration_excess[i] = self.infiltration_array[i] * 1000 * self.timestep_daily_fraction
-            if self.infiltration_excess[i] < 0:
-                # if a negative value sneaks through this should take care of it.
-                self.infiltration_excess[i] = 0
-
-            self.infiltration_array[i] = (self.precip_for_recharge
-                                          - self.infiltration_array[i] * 1000 * self.timestep_daily_fraction
-            )
-            if self.infiltration_array[i] < 0:
-                self.infiltration_array[i] = 0
-
-            # Remove infiltration excess from precip_for_recharge and push it directly into flow_predicted_overland.
-            # Based on conceptual figure drawing from Jeziorska and Niedzielski (2018), figure 1.
-            self.precip_for_recharge = (
-                    self.precip_for_recharge - self.infiltration_excess[i]
-            )
+                    if infiltrate >= ppt:
+                        # if slowest K value equals or exceeds precip, everything infiltrates.
+                        self.zone_infiltration = ppt
+                    else:
+                        for k in range(len(self.k_dist)):
+                            infiltrate = infiltration.infiltration(
+                                t, self.dt, ppt, self.k_dist[k], self.capillary_drive, self.scaling_factor,
+                                self.inf_class
+                            )
+                            self.zone_infiltration = self.zone_infiltration + infiltrate * self.ak_zones[k]
+                self.infiltration_array[i] = self.zone_infiltration * 1000
+                if self.precip_for_recharge - self.infiltration_array[i] < 1.0e-4:
+                    self.infiltration_excess[i] = 0
+                else:
+                    self.infiltration_excess[i] = self.precip_for_recharge - self.infiltration_array[i]
+                self.precip_for_recharge = (
+                        self.precip_for_recharge - self.infiltration_excess[i]
+                 )
 
             # Set the et_exponent based on current temperature
             # Temperature > 15 degrees Celsius means growth
@@ -440,8 +462,7 @@ class Topmodel:
                 # Calculate the local saturation deficit
                 self.saturation_deficit_local[j] = (
                     self.saturation_deficit_avg
-                    + self.scaling_parameter * (self.twi_mean
-                                                - self.twi_values[j])
+                    + self.scaling_parameter * (self.twi_mean * 1000 - self.twi_values[j])
                 )
 
                 self.soil_root_deficit = self.root_zone_storage_max - self.root_zone_storage[j]
@@ -454,19 +475,22 @@ class Topmodel:
 
                 if self.saturation_excess > 0:
                     if self.saturation_excess < self.soil_root_deficit:
+                        #self.root_zone_storage[j] = self.root_zone_storage[j] + self.saturation_excess
                         self.qroot = (self.qroot
                                       + (self.saturation_excess * self.twi_saturated_areas[j])
                                       )
                         self.saturation_deficit_local[j] = (
-                                    (self.porosity_fraction - self.available_water_holding_capacity)
+                                    self.gravity_drained_porosity
                                     * self.water_table_depth)
 
                     else:
+                        #self.root_zone_storage[j] = self.root_zone_storage_max
+                        # Robert Hudson fix
                         self.saturation_deficit_local[j] = (self.saturation_deficit_local[j] + self.soil_root_deficit)
                         self.qroot = (self.qroot
                                       + (self.soil_root_deficit * self.twi_saturated_areas[j])
                                       )
-                else:
+                if self.saturation_excess <= 0:
                     self.saturation_deficit_local[j] = (self.saturation_deficit_local[j] + self.soil_root_deficit)
 
 
@@ -475,6 +499,7 @@ class Topmodel:
                 # to zero meaning soil is saturated and water table is at the
                 # land surface
                 if self.saturation_deficit_local[j] < 0:
+                    self.return_flow = self.return_flow - self.saturation_deficit_local[j] * self.twi_saturated_areas[j]
                     self.saturation_deficit_local[j] = 0
 
                 # If the unsaturated zone storage is greater than the local
@@ -674,9 +699,11 @@ class Topmodel:
                 # Saving variables of interest
                 # ============================
                 self.unsaturated_zone_storages[i][j] = self.unsaturated_zone_storage[j]
+                self.precip_excesses_op[i][j] = self.precip_excesses[j]
                 self.root_zone_storages[i][j] = self.root_zone_storage[j]
                 self.saturation_deficit_locals[i][j] = self.saturation_deficit_local[j]
                 self.evaporations[i][j] = self.evaporation[j]
+
 
                 # END OF TWI INCREMENTS LOOP
 
@@ -716,9 +743,10 @@ class Topmodel:
 
             self.saturation_deficit_avg = (
                 self.saturation_deficit_avg
-                + self.qroot
                 - self.flow_predicted_vertical_drainage_flux
                 + self.flow_predicted_subsurface
+                + self.return_flow
+                + self.qroot
             )
 
             if self.saturation_deficit_avg < 0:
@@ -735,19 +763,18 @@ class Topmodel:
                 self.flow_predicted_impervious_area = (
                     hydrocalcs.runoff(
                         temperature=(self.temperatures[i]),
-                        precipitation=(self.impervious_area_fraction
-                                       * self.precip_for_recharge),
+                        precipitation=self.precip_for_recharge,
                         curve_number=self.impervious_curve_number,
                         amc=self.moisture_conditions
                     )
                     * self.impervious_area_fraction
                 )
 
-                if self.precip_available[i] < 0:
+                if self.precip_available[i] <= 0:
                     amc_precip = 0
                 else:
                     amc_precip = self.precip_available[i]
-                if self.precip_available[i - 120] < 0:
+                if self.precip_available[i - 120] <= 0:
                     amc_last_five = 0
                 else:
                     amc_last_five = self.precip_available[i - 120]
@@ -761,12 +788,11 @@ class Topmodel:
 
             else:
                 self.flow_predicted_impervious_area = 0
-
-                if self.precip_available[i] < 0:
+                if self.precip_available[i] <= 0:
                     amc_precip = 0
                 else:
                     amc_precip = self.precip_available[i]
-                if self.precip_available[i - 120] < 0:
+                if self.precip_available[i - 120] <= 0:
                     amc_last_five = 0
                 else:
                     amc_last_five = self.precip_available[i - 120]
@@ -798,7 +824,7 @@ class Topmodel:
             self.flow_predicted_stream = (
                 self.flow_predicted_total
                 * (1 - self.impervious_area_fraction)
-                + self.flow_predicted_impervious_area
+                + self.flow_predicted_impervious_area * self.impervious_area_fraction
                 + self.flow_predicted_karst
             )
 
@@ -808,7 +834,7 @@ class Topmodel:
             # Adjust the flow delivered to the stream by the
             # channel travel time
             self.flow_predicted_stream = (
-                self.flow_predicted_stream / 1.25 # self.channel_travel_time
+                self.flow_predicted_stream / 1 # self.channel_travel_time
             )
 
             # Final predicted flow
@@ -820,6 +846,7 @@ class Topmodel:
             # Saving variables of interest
             # ============================
             self.root_zone_avg[i] = self.root_zone_storages[i][j]
+            self.q_root[i] = self.qroot
             self.saturation_deficit_avgs[i] = self.saturation_deficit_avg
             if self.precip_available[i] > 0:
                 self.evaporation_actual[i] = self.pet_hamon[i]
@@ -833,6 +860,7 @@ class Topmodel:
         # ===============
         # If option_randomize_daily_to_hourly is True, then convert back from
         # hourly to daily.
+
         if self.option_randomize_daily_to_hourly:
             self.flow_predicted = (
                 hydrocalcs.sum_hourly_to_daily(self.flow_predicted)
@@ -848,6 +876,9 @@ class Topmodel:
             )
             self.unsaturated_zone_storages = (
                 hydrocalcs.sum_hourly_to_daily(self.unsaturated_zone_storages)
+            )
+            self.precip_excesses_op = (
+                hydrocalcs.sum_hourly_to_daily(self.precip_excesses_op)
             )
             self.root_zone_storages = (
                 hydrocalcs.bind_hourly_to_daily(self.root_zone_storages)
@@ -867,8 +898,8 @@ class Topmodel:
             self.root_zone_avg = (
                 hydrocalcs.bind_hourly_to_daily(self.root_zone_avg)
             )
-            self.pex_flow = (
-                hydrocalcs.sum_hourly_to_daily(self.pex_flow)
+            self.q_root = (
+                hydrocalcs.sum_hourly_to_daily(self.q_root)
             )
             self.sub_flow = (
                 hydrocalcs.sum_hourly_to_daily(self.sub_flow)
