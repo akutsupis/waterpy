@@ -492,7 +492,7 @@ class Topmodel:
                                       + (self.soil_root_deficit * self.twi_saturated_areas[j])
                                       )
                 if self.saturation_excess <= 0:
-                    self.saturation_deficit_local[j] = (self.saturation_deficit_local[j] + self.soil_root_deficit)
+                    self.saturation_deficit_local[j] = self.saturation_deficit_local[j]
 
                 # If local saturation deficit is less than zero, meaning soil
                 # is overly saturated, then set the local saturation deficit
@@ -845,16 +845,16 @@ class Topmodel:
 
             # Saving variables of interest
             # ============================
-            self.root_zone_avg[i] = self.root_zone_storages[i][0]
+            self.root_zone_avg[i] = self.root_zone_storages[i][j]
             self.q_root[i] = self.qroot
             self.saturation_deficit_avgs[i] = self.saturation_deficit_avg
             if self.precip_available[i] > 0:
                 self.evaporation_actual[i] = self.pet_hamon[i]
             else:
                 if self.precip[i] > 0:
-                    self.evaporation_actual[i] = self.evaporations[i][0] + self.precip[i]
+                    self.evaporation_actual[i] = self.evaporations[i][j] + self.precip[i]
                 else:
-                    self.evaporation_actual[i] = self.evaporations[i][0]
+                    self.evaporation_actual[i] = self.evaporations[i][j]
 
         # Post processing
         # ===============
