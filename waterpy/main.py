@@ -143,7 +143,7 @@ def preprocess(config_data, parameters, timeseries, twi):
         precip_minus_pet = timeseries["precipitation"].to_numpy() - pet
     # Calculate the twi weighted mean
     twi_weighted_mean = hydrocalcs.weighted_mean(values=twi["twi"],
-                                                 weights=twi["proportion"]) / 1000
+                                                 weights=twi["proportion"]) / parameters["basin"]["twi_adj"]["value"]
 
     # Adjust the scaling parameter by the spatial coefficient
     scaling_parameter_adjusted = (
@@ -206,6 +206,11 @@ def run_topmodel(config_data, parameters, timeseries, twi, preprocessed_data):
         impervious_area_fraction=parameters["basin"]["impervious_area_fraction"]["value"],
         impervious_curve_number=parameters["land_type"]["impervious_curve_number"]["value"],
         flow_initial=parameters["basin"]["flow_initial"]["value"],
+        twi_adj=parameters["basin"]["twi_adj"]["value"],
+        eff_imp=parameters["basin"]["eff_imp"]["value"],
+        et_exp_dorm=parameters["basin"]["et_exp_dorm"]["value"],
+        et_exp_grow=parameters["basin"]["et_exp_grow"]["value"],
+        grow_trigger=parameters["basin"]["grow_trigger"]["value"],
         twi_values=twi["twi"].to_numpy(),
         twi_saturated_areas=twi["proportion"].to_numpy(),
         twi_mean=preprocessed_data["twi_weighted_mean"],

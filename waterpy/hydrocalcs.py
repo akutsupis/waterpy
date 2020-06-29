@@ -463,7 +463,7 @@ def snowmelt_temperature_index(temperatures,
     return melt_rate_coeff * (temperatures - temperature_cutoff)
 
 
-def runoff(temperature, precipitation, curve_number, amc):
+def runoff(grow_season, precipitation, curve_number, amc):
     """Calculate the amount of runoff using the SCS runoff curve number method.
     :param temperature: temperature, in C
     :type temperature: numpy.ndarray
@@ -513,7 +513,7 @@ def runoff(temperature, precipitation, curve_number, amc):
     """
     # might need a 0.1 delay timing on the storage in this section.
 
-    if temperature < 15:
+    if grow_season is True:
         # non-growing season
         if amc > 12.7:
             if amc > 27.94:

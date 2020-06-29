@@ -308,3 +308,51 @@ class TwiFileErrorInvalidProportion(TopmodelpyException):
             "  1.0\n"
             "".format(invalid_proportion)
         )
+
+
+class ParametersFileErrorInvalidTwiAdj(TopmodelpyException):
+    """
+    Raised when a negative value is given for TWI Adjustment parameter.
+    """
+    def __init__(self, invalid_value):
+        self.message = (
+            "Error in basin characteristics.\n"
+            "Invalid twi_adj parameter:\n"
+            "Value is {}".format(invalid_value)
+        )
+
+
+class ParameterFileErrorInvalidEtExpDorm(TopmodelpyException):
+    """
+    Raised when a negative value is given for ET exp dormant parameter.
+    """
+    def __init__(self, invalid_value):
+        self.message = (
+            "Error in basin characteristics.\n"
+            "Invalid et_exp_dorm parameter:\n"
+            "Value is {}".format(invalid_value)
+        )
+
+
+class ParameterFileErrorInvalidEtExpGrow(TopmodelpyException):
+    """
+    Raised when a negative value is given for ET exp growing parameter.
+    """
+    def __init__(self, invalid_value):
+        self.message = (
+            "Error in basin characteristics.\n"
+            "Invalid et_exp_grow parameter:\n"
+            "Value is {}".format(invalid_value)
+        )
+
+
+class ParameterFileErrorEffImp(TopmodelpyException):
+    """
+    Raised when a value <0 or >1 is given for effective impervious.
+    """
+    def __init__(self, invalid_value):
+        self.message = (
+            "Error in basin characteristics.\n"
+            "Invalid eff_imp parameter:\n"
+            "Value is {}".format(invalid_value)
+        )

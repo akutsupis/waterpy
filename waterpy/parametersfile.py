@@ -11,7 +11,11 @@ from .exceptions import (ParametersFileErrorInvalidHeader,
                          ParametersFileErrorInvalidMacropore,
                          ParametersFileErrorInvalidImperviousArea,
                          ParametersFileErrorInvalidFieldCapacityWiltingPoint,
-                         ParametersFileErrorInvalidFieldCapacityPorosity)
+                         ParametersFileErrorInvalidFieldCapacityPorosity,
+                         ParametersFileErrorInvalidTwiAdj,
+                         ParameterFileErrorInvalidEtExpDorm,
+                         ParameterFileErrorInvalidEtExpGrow,
+                         ParameterFileErrorEffImp)
 
 
 def read(filepath):
@@ -38,7 +42,11 @@ def read(filepath):
             ParametersFileErrorInvalidMacropore,
             ParametersFileErrorInvalidImperviousArea,
             ParametersFileErrorInvalidFieldCapacityWiltingPoint,
-            ParametersFileErrorInvalidFieldCapacityPorosity) as err:
+            ParametersFileErrorInvalidFieldCapacityPorosity,
+            ParametersFileErrorInvalidTwiAdj,
+            ParameterFileErrorInvalidEtExpDorm,
+            ParameterFileErrorInvalidEtExpGrow,
+            ParameterFileErrorEffImp) as err:
         print(err)
 
 
@@ -110,6 +118,15 @@ def check_data(data):
     if "field_capacity_fraction" in data.keys() and "porosity_fraction" in data.keys():
         check_field_capacity_porosity(data["field_capacity_fraction"]["value"],
                                       data["porosity_fraction"]["value"])
+    if "twi_adj" in data.keys():
+        check_twi_adj(data["twi_adj"]["value"])
+
+    if "et_exp_dorm" in data.keys():
+        check_et_exp_dorm(data["et_exp_dorm"]["value"])
+
+    if "eff_imp" in data.keys():
+        check_eff_imp(data["eff_imp"]["value"])
+
 
 
 def check_scaling_parameter(value):
@@ -229,3 +246,18 @@ def check_field_capacity_porosity(field_capacity_fraction,
     if not porosity_fraction > field_capacity_fraction:
         raise ParametersFileErrorInvalidFieldCapacityPorosity(field_capacity_fraction,
                                                               porosity_fraction)
+
+
+def check_twi_adj(value):
+    if value < 1:
+        raise ParametersFileErrorInvalidTwiAdj(value)
+
+
+def check_et_exp_dorm(value):
+    if value < 0:
+        raise ParameterFileErrorInvalidEtExpDorm(value)
+
+
+def check_eff_imp(value):
+    if not value >= 0 or not value <= 1:
+        raise ParameterFileErrorEffImp(value)

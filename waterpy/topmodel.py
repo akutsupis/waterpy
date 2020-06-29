@@ -67,6 +67,11 @@ class Topmodel:
                  temperatures,
                  pet_hamon,
                  flow_initial,
+                 twi_adj,
+                 eff_imp,
+                 et_exp_dorm,
+                 et_exp_grow,
+                 grow_trigger,
                  timestep_daily_fraction=1,
                  option_channel_routing=True,
                  option_karst=False,
@@ -112,6 +117,11 @@ class Topmodel:
         # Assign parameters
 
         self.scaling_parameter = scaling_parameter
+        self.twi_adj = twi_adj
+        self.eff_imp = eff_imp
+        self.et_exp_dorm = et_exp_dorm
+        self.et_exp_grow = et_exp_grow
+        self.grow_trigger = grow_trigger
         self.raw_scaling_parameter = raw_scaling_parameter
         self.saturated_hydraulic_conductivity = (
             saturated_hydraulic_conductivity
@@ -445,14 +455,14 @@ class Topmodel:
             # Set the et_exponent based on current temperature
             # Temperature > 15 degrees Celsius means growth
             # Temperature <= 15 degrees Celsius means dormant
-            if self.temperatures[i] > 15:
+            if self.temperatures[i] > self.grow_trigger:
                 # changed from 0.5, changed to 1 (4/9/2020).
                 # Changed to 0.9 after some discussion on (4/14/2020)
-                self.et_exponent = 0
+                self.et_exponent = self.et_exp_grow
             else:
                 # changed from 5 8/19/2019
                 # Changed to 2 based on Tanja's notes from 2014 notes. (4/14/2020)
-                self.et_exponent = 0
+                self.et_exponent = self.et_exp_dorm
 
             # Start of twi increments loop
             for j in range(self.num_twi_increments):
@@ -462,7 +472,7 @@ class Topmodel:
                 # Calculate the local saturation deficit
                 self.saturation_deficit_local[j] = (
                     self.saturation_deficit_avg
-                    + self.scaling_parameter * (self.twi_mean * 1000 - self.twi_values[j])
+                    + self.scaling_parameter * (self.twi_mean * self.twi_adj - self.twi_values[j])
                 )
 
                 self.soil_root_deficit = self.root_zone_storage_max - self.root_zone_storage[j]
@@ -760,9 +770,13 @@ class Topmodel:
             # If there is water available, then calculate the
             # impervious area flow otherwise there is no impervious area flow
             if self.precip_for_recharge > 0:
+                if self.temperatures[i] > self.grow_trigger:
+                    growing = True
+                else:
+                    growing = False
                 self.flow_predicted_impervious_area = (
                     hydrocalcs.runoff(
-                        temperature=(self.temperatures[i]),
+                        grow_season=growing,
                         precipitation=self.precip_for_recharge,
                         curve_number=self.impervious_curve_number,
                         amc=self.moisture_conditions
@@ -824,7 +838,7 @@ class Topmodel:
             self.flow_predicted_stream = (
                 self.flow_predicted_total
                 * (1 - self.impervious_area_fraction)
-                + self.flow_predicted_impervious_area * self.impervious_area_fraction
+                + self.flow_predicted_impervious_area * self.impervious_area_fraction * self.eff_imp
                 + self.flow_predicted_karst
             )
 
