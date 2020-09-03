@@ -211,7 +211,7 @@ def run_topmodel(config_data, parameters, timeseries, twi, preprocessed_data):
         et_exp_dorm=parameters["basin"]["et_exp_dorm"]["value"],
         et_exp_grow=parameters["basin"]["et_exp_grow"]["value"],
         grow_trigger=parameters["basin"]["grow_trigger"]["value"],
-        #percent_riparian=parameters["basin"]["rip_area"]["value"],
+        riparian_area=parameters["basin"]["rip_area"]["value"],
         twi_values=twi["twi"].to_numpy(),
         twi_saturated_areas=twi["proportion"].to_numpy(),
         twi_mean=preprocessed_data["twi_weighted_mean"],
@@ -249,7 +249,8 @@ def run_topmodel(config_data, parameters, timeseries, twi, preprocessed_data):
         "root_zone_avg": topmodel.root_zone_avg,
         "excesses": topmodel.precip_excesses_op,
         "sat_overland_flow": topmodel.pex_flow,
-        "return_flow": topmodel.return_flow_totals
+        "return_flow": topmodel.return_flow_totals,
+        "overland_flow": topmodel.overland_flow
     }
 
     return topmodel_data
@@ -318,6 +319,7 @@ def get_output_dataframe(timeseries, preprocessed_data, topmodel_data):
     output_data["saturation_deficit_avgs"] = topmodel_data["saturation_deficit_avgs"]
     output_data["sat_overland_flow"] = topmodel_data["sat_overland_flow"]
     output_data["return_flow"] = topmodel_data["return_flow"]
+    output_data["overland_flow"] = topmodel_data["overland_flow"]
 
 
     # Calculate predicted discharge in cfs; Predicted Flow * 0.0409 / Basin Area

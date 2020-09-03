@@ -72,7 +72,9 @@ class Topmodel:
                  et_exp_dorm,
                  et_exp_grow,
                  grow_trigger,
-                 #percent_riparian,
+                 riparian_area,
+                 #lake_area,
+
                  timestep_daily_fraction=1,
                  option_channel_routing=True,
                  option_karst=False,
@@ -199,6 +201,7 @@ class Topmodel:
         self.evaporation_actual = utils.nans(self.num_timesteps)
         self.root_zone_avg = utils.nans(self.num_timesteps)
         self.return_flow_totals = utils.nans(self.num_timesteps)
+        self.overland_flow = utils.nans(self.num_timesteps)
 
         # Karst option
         self.option_karst = option_karst
@@ -228,7 +231,8 @@ class Topmodel:
         self.q_root = np.zeros(self.num_timesteps)
 
         # Riparian stuff.
-        self.percent_riparian = 0.158195297
+        self.riparian_area = riparian_area
+        self.percent_riparian = self.riparian_area / self.basin_area_total
         self.riparian_storage = 0.0
         self.lake_fraction = 0
 
@@ -597,11 +601,12 @@ class Topmodel:
                                    - self.root_zone_storage_max)
                             )
 
-                            self.sat_overland_flow[j] = (
+                            self.precip_excesses[j] = (
                                 (self.root_zone_storage[j] - self.root_zone_storage_max) * self.twi_saturated_areas[j]
                             )
+                            self.sat_flow = (self.precip_excesses[j] + self.sat_flow)
                             self.root_zone_storage[j] = self.root_zone_storage_max
-                            self.sat_flow = self.sat_flow + self.sat_overland_flow[j]
+
 
 
                         else:
@@ -731,10 +736,10 @@ class Topmodel:
 
             # Accounting for infiltration excess.
             self.return_flow_totals[i] = self.return_flow
-            self.pex_flow[i] = self.flow_predicted_overland + self.sat_flow
+            self.pex_flow[i] = self.flow_predicted_overland
 
             self.flow_predicted_overland = (
-                    self.flow_predicted_overland + self.infiltration_excess[i] + self.sat_flow
+                    self.flow_predicted_overland + self.infiltration_excess[i]
             )
 
 
@@ -833,6 +838,8 @@ class Topmodel:
 
             self.flow_predicted_impervious[i] = self.flow_predicted_impervious_area
             self.sub_flow[i] = self.flow_predicted_subsurface
+            self.overland_flow[i] = self.flow_predicted_overland
+
             # Total flow
             # ==========
             # Calculate the total flow in a given timestep
@@ -857,7 +864,8 @@ class Topmodel:
             )
 
             self.transpiration = (self.transpiration
-                                  * (1 - self.percent_riparian / self.basin_area_total - self.impervious_area_fraction * self.eff_imp))
+                                  * (1 - self.percent_riparian
+                                     - self.impervious_area_fraction * self.eff_imp))
 
             if self.flow_predicted_stream < 0:
                 self.flow_predicted_stream = 0
@@ -866,13 +874,13 @@ class Topmodel:
             self.riparian_storage = (
                     self.riparian_storage
                     + self.flow_predicted_stream * self.lake_fraction
-                    + self.percent_riparian / self.basin_area_total
+                    + self.percent_riparian
                     + self.precip_available[i] * self.percent_riparian
             )
 
             if self.riparian_storage > 0:
                 self.q_riparian = self.riparian_storage - self.transpiration
-                self.riparian_storage = self.riparian_storage - self.q_riparian - self.transpiration
+                self.riparian_storage = self.riparian_storage - (self.q_riparian - self.transpiration)
                 if self.riparian_storage > self.max_storage:
                     self.q_riparian = self.q_riparian + self.riparian_storage - self.max_storage
                     self.riparian_storage = self.max_storage
@@ -886,10 +894,11 @@ class Topmodel:
 
             self.flow_predicted_stream = (
                 self.flow_predicted_stream * (1 - self.lake_fraction)
-                + self.q_riparian / self.basin_area_total
+                + self.q_riparian / self.basin_area_total  # LM problem
             )
 
-            #self.evaporation_actual[i] = self.transpiration - self.percent_riparian * self.precip_available[i]
+            # self.evaporation_actual[i] = self.transpiration - self.percent_riparian * self.precip_available[i]
+            # aet * (1-rip_area) + pet*rip
 
 
 
@@ -917,9 +926,9 @@ class Topmodel:
                 self.evaporation_actual[i] = self.pet_hamon[i]
             else:
                 if self.precip[i] > 0:
-                    self.evaporation_actual[i] = self.evaporations[i][j] + self.precip[i]
+                    self.evaporation_actual[i] = self.evaporations[i][0] + self.precip[i]
                 else:
-                    self.evaporation_actual[i] = self.evaporations[i][j]
+                    self.evaporation_actual[i] = self.evaporations[i][0]
 
         # Post processing
         # ===============
@@ -929,6 +938,10 @@ class Topmodel:
         if self.option_randomize_daily_to_hourly:
             self.flow_predicted = (
                 hydrocalcs.sum_hourly_to_daily(self.flow_predicted)
+            )
+
+            self.overland_flow = (
+                hydrocalcs.sum_hourly_to_daily(self.overland_flow)
             )
             self.flow_predicted_impervious = (
                 hydrocalcs.sum_hourly_to_daily(self.flow_predicted_impervious)
