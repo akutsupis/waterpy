@@ -15,7 +15,11 @@ channel_velocity_avg,10,kilometers/day,average channel velocity
 flow_initial,0.1,millimeters/day,initial river flow
 lake_area,0,square kilometers,total water body surface area
 twi_adj,1000,unitless,Adjustment for magnitude of TWI - must be >= 1.
-eff_imp,0,fraction,Multiplier to address connectivity of impervious surface to stream network.
+eff_imp,1,fraction,Multiplier to address connectivity of impervious surface to stream network.
 et_exp_dorm,0.9,unitless,Evapotranspiration Exponent for non-growing season.
 et_exp_grow,2,unitless,Evapotranspiration Exponent for growing season.
 grow_trigger,15,temperature (celsius), Temperature (C) transition to/from growing season for ET Exp and AMC.
+rip_area,0,square kilometers,Estimated sqkm of riparian area.
+lake_delay,0,days,
+up_lake_area,0,square kilometers,
+imp_delay,0.1,days,
