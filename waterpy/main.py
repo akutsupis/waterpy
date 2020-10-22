@@ -245,6 +245,7 @@ def run_topmodel(config_data, parameters, timeseries, twi, preprocessed_data):
         "precip_available": topmodel.precip_available,
         "q_root": topmodel.q_root,
         "sub_flow": topmodel.sub_flow,
+        "karst_flow" : topmodel.karst_flow,
         "imp_flow": topmodel.flow_predicted_impervious,
         "root_zone_avg": topmodel.root_zone_avg,
         "excesses": topmodel.precip_excesses_op,
@@ -313,6 +314,7 @@ def get_output_dataframe(timeseries, preprocessed_data, topmodel_data):
     output_data["infiltration_excess"] = topmodel_data["infiltration_excess"]
     output_data["q_root"] = topmodel_data["q_root"]
     output_data["sub_flow"] = topmodel_data["sub_flow"]
+    output_data["karst_flow"] = topmodel_data["karst_flow"]
     output_data["imp_flow"] = topmodel_data["imp_flow"]
     output_data["root_zone_avg"] = topmodel_data["root_zone_avg"]
     output_data["flow_predicted"] = topmodel_data["flow_predicted"]

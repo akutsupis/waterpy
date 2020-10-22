@@ -228,6 +228,7 @@ class Topmodel:
         # Unit testing variables
         self.pex_flow = np.zeros(self.num_timesteps)
         self.sub_flow = np.zeros(self.num_timesteps)
+        self.karst_flow = np.zeros(self.num_timesteps)
         self.q_root = np.zeros(self.num_timesteps)
 
         # Riparian stuff.
@@ -839,6 +840,10 @@ class Topmodel:
             self.flow_predicted_impervious[i] = self.flow_predicted_impervious_area
             self.sub_flow[i] = self.flow_predicted_subsurface
             self.overland_flow[i] = self.flow_predicted_overland
+            if self.option_karst:
+                self.karst_flow[i] = self.flow_predicted_karst
+            else:
+                self.karst_flow[i] = 0
 
             # Total flow
             # ==========
@@ -987,4 +992,7 @@ class Topmodel:
             )
             self.return_flow_totals = (
                 hydrocalcs.sum_hourly_to_daily(self.return_flow_totals)
+            )
+            self.karst_flow = (
+                hydrocalcs.sum_hourly_to_daily(self.karst_flow)
             )
