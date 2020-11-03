@@ -79,6 +79,7 @@ class Topmodel:
                  option_channel_routing=True,
                  option_karst=False,
                  option_randomize_daily_to_hourly=False):
+        self.lake_delay = 1.5  # this is input.
 
         # Check timestep daily fraction
         if timestep_daily_fraction > 1:
@@ -232,10 +233,11 @@ class Topmodel:
         self.q_root = np.zeros(self.num_timesteps)
 
         # Riparian stuff.
-        self.riparian_area = riparian_area
+        self.riparian_area = riparian_area  # Stream area + lake area = riparian area
         self.percent_riparian = self.riparian_area / self.basin_area_total
         self.riparian_storage = 0.0
         self.lake_fraction = 0
+        self.max_storage = 100000000
 
         # Initialize model
         self._initialize()
@@ -421,8 +423,8 @@ class Topmodel:
             if self.precip_available[i] <= 0:
                 # Either no precip, or all precip evaporates.
                 # Value is assigned to precip for evaporation.
-                self.precip_for_evaporation[i] = (
-                    -1 * self.precip_available[i]
+                self.precip_for_evaporation[i] = (  # Precip_for_evap = remaining PET
+                    -1 * self.precip_available[i]   # precip - PET = precip_available
                 )
                 if self.temperatures[i] <= 0:
                     self.precip_for_evaporation[i] = 0
@@ -473,6 +475,7 @@ class Topmodel:
             else:
                 # changed from 5 8/19/2019
                 # Changed to 2 based on Tanja's notes from 2014 notes. (4/14/2020)
+                # Changed code to be input in charactistics - 8/2020.
                 self.et_exponent = self.et_exp_dorm
 
             # Start of twi increments loop
@@ -486,36 +489,32 @@ class Topmodel:
                     + self.scaling_parameter * (self.twi_mean * self.twi_adj - self.twi_values[j])
                 )
 
-                self.soil_root_deficit = self.root_zone_storage_max - self.root_zone_storage[j]
+                self.soil_root_deficit = (self.root_zone_storage_max - self.root_zone_storage[j]) * self.twi_saturated_areas[j]
                 self.water_table_depth = self.soil_depth_roots
                 self.saturation_excess = ((self.gravity_drained_porosity * self.water_table_depth)
-                                          - self.saturation_deficit_local[j])
+                                          - self.saturation_deficit_local[j]) * self.twi_saturated_areas[j]
 
                 # Accounts for the root zone storage in deficit zone.  Adapted from KYTopModel.  Removed updating
                 # soil root zone numbers, saturation excess is added to qroot.
-
-                if self.saturation_excess > 0: #and self.precip_for_recharge > 0:
-                    if self.saturation_excess < self.soil_root_deficit:
-                        self.root_zone_storage[j] = self.root_zone_storage[j] + self.saturation_excess #* self.twi_saturated_areas[j]
-                        self.qroot = (self.qroot
-                                      + (self.saturation_excess * self.twi_saturated_areas[j])
-                                      )
-                        self.saturation_deficit_local[j] = (
-                                    self.gravity_drained_porosity
-                                    * self.water_table_depth)
-
-                    else:
-                        self.root_zone_storage[j] = self.root_zone_storage_max # maybe
-                        # Robert Hudson fix
-                        self.saturation_deficit_local[j] = (self.saturation_deficit_local[j] + self.soil_root_deficit)
-                        self.qroot = (self.qroot
-                                      + (self.soil_root_deficit * self.twi_saturated_areas[j])
-                                      )
-
                 if self.saturation_excess <= 0:
                     self.saturation_deficit_local[j] = self.saturation_deficit_local[j]
 
+                elif self.saturation_excess > 0:
+                    if self.saturation_excess < self.soil_root_deficit:
+                        #self.root_zone_storage[j] = self.root_zone_storage[j] + self.saturation_excess
+                        self.qroot = (self.qroot + self.saturation_excess
+                                      )
+                        # self.saturation_deficit_local[j] = (
+                        #             self.gravity_drained_porosity
+                        #             * self.water_table_depth)
 
+                    elif self.root_zone_storage[j] == self.root_zone_storage_max:
+
+                        # Robert Hudson fix
+                        #self.saturation_deficit_local[j] = (self.saturation_deficit_local[j] + self.soil_root_deficit)
+                        self.qroot = self.qroot + self.soil_root_deficit
+                    # else:
+                    #     self.saturation_deficit_local[j] = (self.saturation_deficit_local[j] + self.soil_root_deficit)
 
                 # If local saturation deficit is less than zero, meaning soil
                 # is overly saturated, then set the local saturation deficit
@@ -601,29 +600,39 @@ class Topmodel:
                                 + (self.root_zone_storage[j]
                                    - self.root_zone_storage_max)
                             )
-
-                            self.precip_excesses[j] = (
-                                (self.root_zone_storage[j] - self.root_zone_storage_max) * self.twi_saturated_areas[j]
-                            )
-                            self.sat_flow = (self.precip_excesses[j] + self.sat_flow)
                             self.root_zone_storage[j] = self.root_zone_storage_max
 
-
-
-                        else:
-                            # If the unsaturated zone storage is greater than
-                            # the local saturation deficit, update the root
-                            # zone storage with the difference and assign the
-                            # local saturation deficit to the unsaturated zone
-                            # storage (same step preformed in calculation of
-                            # the local saturation deficit above)
-                            if self.unsaturated_zone_storage[j] > self.saturation_deficit_local[j]:
-                                self.root_zone_storage[j] = (
+                        elif self.unsaturated_zone_storage[j] > self.saturation_deficit_local[j]:
+                            self.root_zone_storage[j] = (
                                     self.root_zone_storage[j]
                                     + (self.unsaturated_zone_storage[j]
                                        - self.saturation_deficit_local[j])
-                                )
-                                self.unsaturated_zone_storage[j] = self.saturation_deficit_local[j]
+                            )
+                            self.unsaturated_zone_storage[j] = self.saturation_deficit_local[j]
+
+                        if self.root_zone_storage[j] > self.root_zone_storage_max:
+                            self.precip_excesses[j] = (
+                                (self.root_zone_storage[j] - self.root_zone_storage_max) * self.twi_saturated_areas[j]
+                            )
+
+                            self.root_zone_storage[j] = self.root_zone_storage_max
+
+                    self.sat_flow = (self.precip_excesses[j] + self.sat_flow)
+
+                        # else:
+                        #     # If the unsaturated zone storage is greater than
+                        #     # the local saturation deficit, update the root
+                        #     # zone storage with the difference and assign the
+                        #     # local saturation deficit to the unsaturated zone
+                        #     # storage (same step preformed in calculation of
+                        #     # the local saturation deficit above)
+                        #     if self.unsaturated_zone_storage[j] > self.saturation_deficit_local[j]:
+                        #         self.root_zone_storage[j] = (
+                        #             self.root_zone_storage[j]
+                        #             + (self.unsaturated_zone_storage[j]
+                        #                - self.saturation_deficit_local[j])
+                        #         )
+                        #
 
 
                 # Drainage from unsaturated zone storage
@@ -664,7 +673,7 @@ class Topmodel:
 
                 # Evaporation from soil root zone storage
                 # =======================================
-                # If there is precipitation available for evaporation,
+                # If there is evaporation in excess of precipitation,
                 # then compute evaporation.
                 # Note: Evaporation is calculated using AET formula from
                 # Table 2 of USGS SIR 20155143 (see reference [2] in
@@ -675,9 +684,6 @@ class Topmodel:
                             self.precip_for_evaporation[i] *
                             (self.root_zone_storage[j] / self.root_zone_storage_max)**self.et_exponent
                     )
-
-                    # if self.evaporation[j] > self.precip_for_evaporation[i]:
-                    #     self.evaporation[j] = self.precip_for_evaporation[i]
 
                     # If the precipitation available for evapotranspiration is
                     # greater than the soil root zone storage amount, then
@@ -724,7 +730,7 @@ class Topmodel:
                 # Saving variables of interest
                 # ============================
                 self.unsaturated_zone_storages[i][j] = self.unsaturated_zone_storage[j]
-                self.precip_excesses_op[i][j] = self.precip_excesses[j]
+                self.precip_excesses_op[i][j] = self.precip_excesses[j] * self.twi_saturated_areas[j]
                 self.root_zone_storages[i][j] = self.root_zone_storage[j]
                 self.saturation_deficit_locals[i][j] = self.saturation_deficit_local[j]
                 self.evaporations[i][j] = self.evaporation[j]
@@ -775,7 +781,7 @@ class Topmodel:
                 - self.flow_predicted_vertical_drainage_flux
                 + self.flow_predicted_subsurface
                 + self.return_flow
-                + self.qroot # Tanja and Alex think this is crazy to count both qroot and return_flow
+                + self.qroot
             )
 
             if self.saturation_deficit_avg < 0:
@@ -800,7 +806,7 @@ class Topmodel:
                         curve_number=self.impervious_curve_number,
                         amc=self.moisture_conditions
                     )
-                    * self.impervious_area_fraction
+                    #* self.impervious_area_fraction
                 )
 
                 if self.precip_available[i] <= 0:
@@ -853,6 +859,8 @@ class Topmodel:
             self.flow_predicted_total = (
                 self.flow_predicted_subsurface
                 + self.flow_predicted_overland
+                + self.return_flow
+                + self.flow_predicted_karst
             )
 
             # Channel routing
@@ -864,8 +872,6 @@ class Topmodel:
                 self.flow_predicted_total
                 * (1 - self.percent_riparian - self.impervious_area_fraction * self.eff_imp)
                 + self.flow_predicted_impervious_area * (self.impervious_area_fraction * self.eff_imp)
-                + self.flow_predicted_karst
-                + self.return_flow
             )
 
             self.transpiration = (self.transpiration
@@ -875,17 +881,17 @@ class Topmodel:
             if self.flow_predicted_stream < 0:
                 self.flow_predicted_stream = 0
 
-            self.max_storage = 100000000
             self.riparian_storage = (
-                    self.riparian_storage
+                    self.riparian_storage - self.transpiration
                     + self.flow_predicted_stream * self.lake_fraction
-                    + self.percent_riparian
                     + self.precip_available[i] * self.percent_riparian
             )
 
             if self.riparian_storage > 0:
-                self.q_riparian = self.riparian_storage - self.transpiration
-                self.riparian_storage = self.riparian_storage - (self.q_riparian - self.transpiration)
+                self.q_riparian = self.riparian_storage / self.lake_delay
+                self.riparian_storage = self.riparian_storage - self.q_riparian
+                self.max_storage = 100000000
+
                 if self.riparian_storage > self.max_storage:
                     self.q_riparian = self.q_riparian + self.riparian_storage - self.max_storage
                     self.riparian_storage = self.max_storage
@@ -899,16 +905,8 @@ class Topmodel:
 
             self.flow_predicted_stream = (
                 self.flow_predicted_stream * (1 - self.lake_fraction)
-                + self.q_riparian / self.basin_area_total  # LM problem
+                + self.q_riparian
             )
-
-            # self.evaporation_actual[i] = self.transpiration - self.percent_riparian * self.precip_available[i]
-            # aet * (1-rip_area) + pet*rip
-
-
-
-
-
 
             # Adjust the flow delivered to the stream by the
             # channel travel time
@@ -924,7 +922,7 @@ class Topmodel:
 
             # Saving variables of interest
             # ============================
-            self.root_zone_avg[i] = self.root_zone_storages[i][0]
+            self.root_zone_avg[i] = np.sum(self.root_zone_storages[i]) / self.num_twi_increments
             self.q_root[i] = self.qroot
             self.saturation_deficit_avgs[i] = self.saturation_deficit_avg
             if self.precip_available[i] > 0:
@@ -944,12 +942,12 @@ class Topmodel:
             self.flow_predicted = (
                 hydrocalcs.sum_hourly_to_daily(self.flow_predicted)
             )
-
             self.overland_flow = (
                 hydrocalcs.sum_hourly_to_daily(self.overland_flow)
             )
             self.flow_predicted_impervious = (
                 hydrocalcs.sum_hourly_to_daily(self.flow_predicted_impervious)
+                * self.impervious_area_fraction * self.eff_imp
             )
             self.saturation_deficit_avgs = (
                 hydrocalcs.bind_hourly_to_daily(self.saturation_deficit_avgs)
