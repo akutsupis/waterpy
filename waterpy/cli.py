@@ -2,7 +2,7 @@
 
 
 import click
-import sys
+import sys, warnings
 import traceback
 
 from waterpy.main import waterpy
@@ -30,6 +30,7 @@ def main(options, verbose, show):
     """
     options.verbose = verbose
     options.show = show
+    warnings.filterwarnings("ignore")
 
 
 @main.command()

@@ -1,8 +1,10 @@
 README.rst
 setup.py
 waterpy/__init__.py
+waterpy/aggregate.py
 waterpy/cli.py
 waterpy/exceptions.py
+waterpy/geospatial.py
 waterpy/hydrocalcs.py
 waterpy/infiltration.py
 waterpy/main.py

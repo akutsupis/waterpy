@@ -203,7 +203,7 @@ def run_topmodel(config_data, parameters, timeseries, twi, preprocessed_data):
         porosity_fraction=parameters["basin"]["porosity_fraction"]["value"],
         wilting_point_fraction=parameters["basin"]["wilting_point_fraction"]["value"],
         basin_area_total=parameters["basin"]["basin_area_total"]["value"],
-        impervious_area_fraction=parameters["basin"]["impervious_area_fraction"]["value"],
+        impervious_area_fraction=parameters["basin"]["impervious_area_fraction"]["value"] / 100,
         impervious_curve_number=parameters["land_type"]["impervious_curve_number"]["value"],
         flow_initial=parameters["basin"]["flow_initial"]["value"],
         twi_adj=parameters["basin"]["twi_adj"]["value"],
@@ -211,6 +211,7 @@ def run_topmodel(config_data, parameters, timeseries, twi, preprocessed_data):
         et_exp_dorm=parameters["basin"]["et_exp_dorm"]["value"],
         et_exp_grow=parameters["basin"]["et_exp_grow"]["value"],
         grow_trigger=parameters["basin"]["grow_trigger"]["value"],
+        riparian_area=parameters["basin"]["rip_area"]["value"],
         twi_values=twi["twi"].to_numpy(),
         twi_saturated_areas=twi["proportion"].to_numpy(),
         twi_mean=preprocessed_data["twi_weighted_mean"],
@@ -244,9 +245,13 @@ def run_topmodel(config_data, parameters, timeseries, twi, preprocessed_data):
         "precip_available": topmodel.precip_available,
         "q_root": topmodel.q_root,
         "sub_flow": topmodel.sub_flow,
+        "karst_flow" : topmodel.karst_flow,
         "imp_flow": topmodel.flow_predicted_impervious,
         "root_zone_avg": topmodel.root_zone_avg,
-        "excesses": topmodel.precip_excesses_op
+        "excesses": topmodel.precip_excesses_op,
+        "sat_overland_flow": topmodel.pex_flow,
+        "return_flow": topmodel.return_flow_totals,
+        "overland_flow": topmodel.overland_flow
     }
 
     return topmodel_data
@@ -309,10 +314,14 @@ def get_output_dataframe(timeseries, preprocessed_data, topmodel_data):
     output_data["infiltration_excess"] = topmodel_data["infiltration_excess"]
     output_data["q_root"] = topmodel_data["q_root"]
     output_data["sub_flow"] = topmodel_data["sub_flow"]
+    output_data["karst_flow"] = topmodel_data["karst_flow"]
     output_data["imp_flow"] = topmodel_data["imp_flow"]
     output_data["root_zone_avg"] = topmodel_data["root_zone_avg"]
     output_data["flow_predicted"] = topmodel_data["flow_predicted"]
     output_data["saturation_deficit_avgs"] = topmodel_data["saturation_deficit_avgs"]
+    output_data["sat_overland_flow"] = topmodel_data["sat_overland_flow"]
+    output_data["return_flow"] = topmodel_data["return_flow"]
+    output_data["overland_flow"] = topmodel_data["overland_flow"]
 
 
     # Calculate predicted discharge in cfs; Predicted Flow * 0.0409 / Basin Area
