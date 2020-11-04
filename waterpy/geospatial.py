@@ -597,36 +597,60 @@ def get_area(shp):
 
 def characteristics(db_rasters, shp):
     characteristics_out = {
-        "scaling_parameter" : zonal_stats(db_rasters['scaling_parameter'], shp) / 100,
-        "saturated_hydraulic_conductivity" : zonal_stats(db_rasters['k_sat'], shp) / 100 * 86.4,
-        "saturated_hydraulic_conductivity_multiplier" : zonal_stats(db_rasters['con_mult'], shp) / 100,
-        "soil_depth_total" : zonal_stats(db_rasters["soil_thickness"], shp) / 10,
-        "field_capacity_fraction" : zonal_stats(db_rasters["field_cap"], shp) / 10000,
-        "porosity_fraction" : zonal_stats(db_rasters["porosity"], shp) / 10000,
-        "wilting_point_fraction" : (zonal_stats(db_rasters["field_cap"], shp) / 10000) -
-                                   (zonal_stats(db_rasters['awc'], shp) / 100),
-        "latitude": deg_lat(shp),
-        "basin_area_total": get_area(shp) / 10e6,
-        "impervious_area_fraction": (zonal_area(db_rasters["imp"], shp) / get_area(shp)) * 100,
-        "channel_length_max": 10,
-        "channel_velocity_avg": 0.1,
-        "flow_initial": 0.1,
-        "stream area": zonal_area(db_rasters["imp"], shp) / 10e6,
-        #lake_area: still working,
-        "eff_imp" : 0.7,
-        "imp_delay": 0.1,
-        "twi_adj": 1,  #
-        "et_exp_dorm" : 0,
-        "et_exp_grow" : 0,
-        "grow_trigger" : 15,
-        "rip_area": (zonal_area(db_rasters["imp"], shp) / 10e6), # + lake_area,
-        "lake_delay": 0
-        #up_lake_area : still working
+        "scaling_parameter": {zonal_stats(db_rasters['scaling_parameter'], shp) / 100
+                              },
+        "saturated_hydraulic_conductivity": {zonal_stats(db_rasters['k_sat'], shp) / 100 * 86.4},
+        "saturated_hydraulic_conductivity_multiplier": {zonal_stats(db_rasters['con_mult'], shp) / 100},
+        "soil_depth_total": {zonal_stats(db_rasters["soil_thickness"], shp) / 10},
+        "field_capacity_fraction": {zonal_stats(db_rasters["field_cap"], shp) / 10000},
+        "porosity_fraction": {zonal_stats(db_rasters["porosity"], shp) / 10000},
+        "wilting_point_fraction": {(zonal_stats(db_rasters["field_cap"], shp) / 10000) -
+                                   (zonal_stats(db_rasters['awc'], shp) / 100)},
+
+        "latitude": {deg_lat(shp)},
+        "basin_area_total": {get_area(shp) / 10e6},
+        "impervious_area_fraction": {(zonal_area(db_rasters["imp"], shp) / get_area(shp)) * 100},
+        "channel_length_max": {2},
+        "channel_velocity_avg": {10},
+        "flow_initial": {0.1},
+        "stream area": {zonal_area(db_rasters["snet_10m"], shp) / 10e5},
+        "lake_area": {0}, #still working
+        "up_lake_area" : {0}, #still working
+        "rip_area": {(zonal_area(db_rasters["snet_10m"], shp) / 10e5)},  # stream_area + lake_area,
+        "lake_delay": {0},
+        "eff_imp": {0.7},
+        "imp_delay": {0.1},
+        "twi_adj": {1},
+        "et_exp_dorm": {0},
+        "et_exp_grow": {0},
+        "grow_trigger": {15},
     }
+    units = ["mm", "mm/day","unitless","mm","fraction","fraction","fraction","degrees", "sq km", "percentage",
+             "km", "km/day", "mm/day", "sq km", "sq km", "sq km", "sq km", "days", "fraction", "days", "unitless",
+             "unitless", "unitless", "temp C"]
+
+    description = ['controls the rate of decline of transmissivity in the soil profile',
+                   'saturated hydraulic conductivity of the C horizon of the soil',
+                   'multiplier to apply to saturated hydraulic conductivity ', 'soil depth',
+                   'fraction of soil moisture or water content in the soil after excess water has drained away',
+                   'fraction of soil that is porous and is always larger than field_capacity_fraction',
+                   'fraction amount of the minimal amount of water in the soil that plants require not to wilt',
+                   'centroid latitude of basin', 'total basin area', 'fraction of impervious area of basin',
+                   'maximum channel length', 'average channel velocity', 'initial river flow',
+                   'total stream surface area', 'total waterbody area', 'total waterbody area upstream',
+                   'total riparian area', 'estimated time for water to move through lake',
+                   'percentage of impervious area connection to stream network',
+                   'estimated delay for impervious runoff to reach stream network',
+                   'Adjustment for magnitude of TWI - must be >= 1.',
+                   'evapotranspiration Exponent for non-growing season.',
+                   'evapotranspiration Exponent for growing season.',
+                   'Temperature (C) transition to/from growing season for ET Exp and AMC.']
 
     df = pd.DataFrame.from_dict(characteristics_out, orient="index")
     df.index.name = "name"
     df.columns = ['value']
+    df['units'] = units
+    df['description'] = description
 
     return df
 
@@ -744,6 +768,7 @@ if __name__ == "__main__":
     # Database header
     db_path = "database//"
     karst_raster = Raster(path="database//Sinks_masked.tif")
+    karst_shp = Shp(path="database/karst_shp.shp")
     db_rasters = {'awc': Raster(path=db_path + 'HA00_AWC.tif'),
                   'con_mult': Raster(path=db_path + 'HA00_cnmlt.tif'),
                   'field_cap': Raster(path=db_path + 'HA00_FC.tif'),
@@ -752,14 +777,16 @@ if __name__ == "__main__":
                   'soil_thickness': Raster(path=db_path + 'HA00_TH.tif'),
                   'porosity': Raster(path=db_path + 'HA00_POR.tif'),
                   'imp': Raster(path=db_path + 'IMP.tif'),
+                  'snet_10m': Raster(path=db_path + "snet_10m.tif"),
                   'twi': Raster(path=db_path + "TWI.tif"),
                   'stream': Raster(path=db_path + 'snet_10m.tif')
                   }
-    karst_shp = Shp(path="database/karst_shp.shp")
+
 
     # Input goes here.
     print("path to shapefile:")
     path_to = input()
+    path_to = str(path_to)
     print("Create time series? y/n")
     timeseries = input()
     if timeseries.capitalize() == "Y":
@@ -768,8 +795,7 @@ if __name__ == "__main__":
         timeseries = False
     shp = Shp(path=path_to)
 
-    # Test code - don't delete.
-    # shp = Shp(path="input//RockCastle.shp")
+    # shp = Shp(path="shapefiles//grapevine.shp")
     # timeseries = False
 
     shp.karst_flag = karst_detection(karst_raster, shp)
