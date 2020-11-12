@@ -544,7 +544,11 @@ def dissolve_polygon(raster, shp):
     x_max = x_min + gt[1] * x_res
     y_min = y_max + gt[5] * y_res
     pixel_width = gt[1]
-    out_file = "shapefiles//karst_flat.shp"
+
+    if not os.path.exists('temp_shapefiles'):
+        os.mkdir('temp_shapefiles')
+
+    out_file = "temp_shapefiles//karst_flat.shp"
     target_ds = gdal.GetDriverByName('MEM').Create('', x_res, y_res, 1, gdal.GDT_Byte)
     target_ds.SetGeoTransform((x_min, pixel_width, 0, y_min, 0, pixel_width))
     band = target_ds.GetRasterBand(1)
@@ -768,7 +772,7 @@ if __name__ == "__main__":
     # Database header
     db_path = "database//"
     karst_raster = Raster(path="database//Sinks_masked.tif")
-    karst_shp = Shp(path="database/karst.shp")
+    karst_shp = Shp(path="database/karst_shp.shp")
     db_rasters = {'awc': Raster(path=db_path + 'HA00_AWC.tif'),
                   'con_mult': Raster(path=db_path + 'HA00_cnmlt.tif'),
                   'field_cap': Raster(path=db_path + 'HA00_FC.tif'),
@@ -803,15 +807,17 @@ if __name__ == "__main__":
     out_twi = twi_bins(db_rasters["twi"], shp)
 
     # Output
-    out_df.to_csv("input//basin_characteristics.csv")
-    out_twi.to_csv("input//twi.csv")
+    if not os.path.exists('geo_input'):
+        os.mkdir('geo_input')
+    out_df.to_csv("geo_input//basin_characteristics.csv")
+    out_twi.to_csv("geo_input//twi.csv")
     if shp.karst_flag == 1:
         simple = simplify(shp)
         karst = clip(karst_shp, simple)
         out_df_karst = characteristics(db_rasters, karst)
         out_twi_karst = twi_bins(db_rasters["twi"], karst)
-        out_df_karst.to_csv("input//basin_characteristics_karst.csv")
-        out_twi_karst.to_csv("input//twi_karst.csv")
+        out_df_karst.to_csv("geo_input//basin_characteristics_karst.csv")
+        out_twi_karst.to_csv("geo_input//twi_karst.csv")
 
     if timeseries:
         for root, dirs, files in os.walk("database//climate", topdown=False):
