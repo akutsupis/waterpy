@@ -38,8 +38,8 @@ setup(
     description=("A rainfall-runoff model that predicts the amount "
                  "of water flow in rivers."),
     long_description=readme + "\n\n" + changelog,
-    author="Jeremiah Lant",
-    author_email="jlant@usgs.gov",
+    author="Alexander Headman",
+    author_email="aheadman@usgs.gov",
     url="",
     packages=[
         "waterpy",
@@ -62,6 +62,9 @@ setup(
         "Programming Language :: Python :: 3.4",
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
     ],
     test_suite="tests",
     tests_require=test_requirements

@@ -53,7 +53,7 @@ class Shp:
         return center_x, center_y
 
     def daymet_proj(self):
-        daymet_proj = pycrs.load.from_file("shapefiles//Daymet.prj")
+        daymet_proj = pycrs.load.from_file("database//Daymet.prj")
         transformer = pyproj.Transformer.from_crs(self.prj4, daymet_proj.to_proj4())
         return transformer.transform(self.x_cen, self.y_cen)
 
@@ -80,7 +80,7 @@ class dbShp:
         return center_x, center_y
 
     def daymet_proj(self):
-        daymet_proj = pycrs.load.from_file("shapefiles//Daymet.prj")
+        daymet_proj = pycrs.load.from_file("database//Daymet.prj")
         transformer = pyproj.Transformer.from_crs(self.prj4, daymet_proj.to_proj4())
         return transformer.transform(self.x_cen, self.y_cen)
 
