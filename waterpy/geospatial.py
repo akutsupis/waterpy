@@ -768,7 +768,7 @@ if __name__ == "__main__":
     # Database header
     db_path = "database//"
     karst_raster = Raster(path="database//Sinks_masked.tif")
-    karst_shp = Shp(path="database/karst_shp.shp")
+    karst_shp = Shp(path="database/karst.shp")
     db_rasters = {'awc': Raster(path=db_path + 'HA00_AWC.tif'),
                   'con_mult': Raster(path=db_path + 'HA00_cnmlt.tif'),
                   'field_cap': Raster(path=db_path + 'HA00_FC.tif'),
