@@ -324,11 +324,12 @@ def get_output_dataframe(timeseries, preprocessed_data, topmodel_data):
     output_data["overland_flow"] = topmodel_data["overland_flow"]
 
 
-    # Calculate predicted discharge in cfs; Predicted Flow * 0.0409 / Basin Area
-    m = 0.0409
+    # Calculate predicted discharge in cfs; 
+    m = preprocessed_data["basin_area"]
     n = topmodel_data["flow_predicted"]
-    g = preprocessed_data["basin_area"]
-    j = ((m*n) / g)
+    g = m * 1000000
+    d = g/86400000
+    j = d * n
     output_data["discharge_predicted"] = j
 
     output_df = timeseries.assign(**output_data)
