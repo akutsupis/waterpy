@@ -782,7 +782,7 @@ if __name__ == "__main__":
                   'porosity': Raster(path=db_path + 'HA00_POR.tif'),
                   'imp': Raster(path=db_path + 'IMP.tif'),
                   'snet_10m': Raster(path=db_path + "snet_10m.tif"),
-                  'twi': Raster(path=db_path + "TWI.tif"),
+                  'twi': Raster(path=db_path + "TWI_10m.tif"),
                   'stream': Raster(path=db_path + 'snet_10m.tif')
                   }
 
