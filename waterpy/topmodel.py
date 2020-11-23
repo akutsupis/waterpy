@@ -937,60 +937,61 @@ class Topmodel:
         # ===============
         # If option_randomize_daily_to_hourly is True, then convert back from
         # hourly to daily.
+        self.drop_first = 8760
 
         if self.option_randomize_daily_to_hourly:
             self.flow_predicted = (
-                hydrocalcs.sum_hourly_to_daily(self.flow_predicted)
+                hydrocalcs.sum_hourly_to_daily(self.flow_predicted[self.drop_first:])
             )
             self.overland_flow = (
-                hydrocalcs.sum_hourly_to_daily(self.overland_flow)
+                hydrocalcs.sum_hourly_to_daily(self.overland_flow[self.drop_first:])
             )
             self.flow_predicted_impervious = (
-                hydrocalcs.sum_hourly_to_daily(self.flow_predicted_impervious)
+                hydrocalcs.sum_hourly_to_daily(self.flow_predicted_impervious[self.drop_first:])
                 * self.impervious_area_fraction * self.eff_imp
             )
             self.saturation_deficit_avgs = (
-                hydrocalcs.bind_hourly_to_daily(self.saturation_deficit_avgs)
+                hydrocalcs.bind_hourly_to_daily(self.saturation_deficit_avgs[self.drop_first:])
             )
             self.saturation_deficit_locals = (
-                hydrocalcs.bind_hourly_to_daily(self.saturation_deficit_locals)
+                hydrocalcs.bind_hourly_to_daily(self.saturation_deficit_locals[self.drop_first:])
             )
             self.unsaturated_zone_storages = (
-                hydrocalcs.sum_hourly_to_daily(self.unsaturated_zone_storages)
+                hydrocalcs.sum_hourly_to_daily(self.unsaturated_zone_storages[self.drop_first:])
             )
             self.precip_excesses_op = (
-                hydrocalcs.sum_hourly_to_daily(self.precip_excesses_op)
+                hydrocalcs.sum_hourly_to_daily(self.precip_excesses_op[self.drop_first:])
             )
             self.root_zone_storages = (
-                hydrocalcs.bind_hourly_to_daily(self.root_zone_storages)
+                hydrocalcs.bind_hourly_to_daily(self.root_zone_storages[self.drop_first:])
             )
             self.evaporations = (
-                hydrocalcs.sum_hourly_to_daily(self.evaporations)
+                hydrocalcs.sum_hourly_to_daily(self.evaporations[self.drop_first:])
             )
             self.pex_flow = (
-                hydrocalcs.sum_hourly_to_daily(self.pex_flow)
+                hydrocalcs.sum_hourly_to_daily(self.pex_flow[self.drop_first:])
             )
             self.infiltration_array = (
-                hydrocalcs.sum_hourly_to_daily(self.infiltration_array)
+                hydrocalcs.sum_hourly_to_daily(self.infiltration_array[self.drop_first:])
             )
             self.infiltration_excess = (
-                hydrocalcs.sum_hourly_to_daily(self.infiltration_excess)
+                hydrocalcs.sum_hourly_to_daily(self.infiltration_excess[self.drop_first:])
             )
             self.evaporation_actual = (
-                    hydrocalcs.sum_hourly_to_daily(self.evaporation_actual)
+                    hydrocalcs.sum_hourly_to_daily(self.evaporation_actual[self.drop_first:])
             )
             self.root_zone_avg = (
-                hydrocalcs.bind_hourly_to_daily(self.root_zone_avg)
+                hydrocalcs.bind_hourly_to_daily(self.root_zone_avg[self.drop_first:])
             )
             self.q_root = (
-                hydrocalcs.sum_hourly_to_daily(self.q_root)
+                hydrocalcs.sum_hourly_to_daily(self.q_root[self.drop_first:])
             )
             self.sub_flow = (
-                hydrocalcs.sum_hourly_to_daily(self.sub_flow)
+                hydrocalcs.sum_hourly_to_daily(self.sub_flow[self.drop_first:])
             )
             self.return_flow_totals = (
-                hydrocalcs.sum_hourly_to_daily(self.return_flow_totals)
+                hydrocalcs.sum_hourly_to_daily(self.return_flow_totals[self.drop_first:])
             )
             self.karst_flow = (
-                hydrocalcs.sum_hourly_to_daily(self.karst_flow)
+                hydrocalcs.sum_hourly_to_daily(self.karst_flow[self.drop_first:])
             )

@@ -264,6 +264,7 @@ def postprocess(config_data, timeseries, preprocessed_data, topmodel_data):
     Plot timeseries
     """
     # Get output timeseries data
+    timeseries = timeseries[365:]
     output_df = get_output_dataframe(timeseries,
                                      preprocessed_data,
                                      topmodel_data)
@@ -307,9 +308,9 @@ def get_output_dataframe(timeseries, preprocessed_data, topmodel_data):
         output_data["snow_water_equivalence"] = preprocessed_data["snow_water_equivalence"]
 
     if "pet" not in timeseries.columns:
-        output_data["pet"] = preprocessed_data["pet"]
+        output_data["pet"] = preprocessed_data["pet"][365:]
     output_data["aet"] = topmodel_data["evaporation_actual"]
-    output_data["precip_minus_pet"] = preprocessed_data["precip_minus_pet"]
+    output_data["precip_minus_pet"] = preprocessed_data["precip_minus_pet"][365:]
     output_data["infiltration"] = topmodel_data["infiltration"]
     output_data["infiltration_excess"] = topmodel_data["infiltration_excess"]
     output_data["q_root"] = topmodel_data["q_root"]
@@ -331,7 +332,7 @@ def get_output_dataframe(timeseries, preprocessed_data, topmodel_data):
     d = g/86400000
     j = d * n
     output_data["discharge_predicted"] = j
-
+    #timeseries = timeseries[365:]
     output_df = timeseries.assign(**output_data)
 
     return output_df
