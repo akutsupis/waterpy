@@ -1,6 +1,8 @@
 import math
 
+
 class Statics:
+
     cumi = 0
     i_end = 0
     lamb = 0
@@ -9,7 +11,6 @@ class Statics:
 
 
 def infiltration(time, dt, ppt, k0, cd, m, statics):
-
     f1 = 0.0
     t = time
     if ppt <= 0:
