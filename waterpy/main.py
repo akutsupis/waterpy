@@ -328,7 +328,7 @@ def get_output_dataframe(timeseries, preprocessed_data, topmodel_data):
     # Calculate predicted discharge in cfs; 
     m = preprocessed_data["basin_area"]
     n = topmodel_data["flow_predicted"]
-    g = m * 1000000
+    g = m * 1000000 * 35.31467
     d = g/86400000
     j = d * n
     output_data["discharge_predicted"] = j
