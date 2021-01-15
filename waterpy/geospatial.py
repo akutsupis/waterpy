@@ -71,65 +71,7 @@ class dbShp:
         self.prj = self.shp.GetLayer().GetSpatialRef()
         self.prj4 = self.prj.ExportToProj4()
         self.feature = self.shp.GetLayer(0).GetFeature(0)
-        self.x_cen, self.y_cen = self._centroid()from osgeo import ogr, gdal, osr, gdalconst
-import os
-import numpy as np
-import pandas as pd
-import json
-import pycrs
-import pyproj
-import netCDF4
-import datetime as dt
-
-
-class Shp:
-    """
-    Contains various fuctions and metadata desc in init related in SHP objects.
-    While titled SHP, currently this should only be used with polygons.  Will incorporate fun things like
-    points in future versions.  I currently see no reason to incorporate lines.
-    Outside reliance on the daymet.prj (included in ./static/geospatial) to transform things into daymet to build the
-    temp/precip series.
-    """
-
-    def __init__(self, path):
-        self.path = path
-        self.shp = ogr.Open(self.path)
-        self.lyr = self.shp.GetLayer()
-        self.prj = self.shp.GetLayer().GetSpatialRef()
-        self.prj4 = self.prj.ExportToProj4()
-        self.feature = self.shp.GetLayer(0).GetFeature(0)
-        self.extent = self.feature.GetGeometryRef().GetEnvelope()
         self.x_cen, self.y_cen = self._centroid()
-        self.daymet_x, self.daymet_y = self.daymet_proj()
-        self.karst_flag = 0
-
-    @classmethod
-    def _clean(cls, path):
-        ds = ogr.Open(path, 1)
-        lyr = ds.GetLayer()
-        defn = lyr.GetLayerDefn()
-        for i in range(defn.GetFieldCount()):
-            name = defn.GetFieldDefn(i).GetName()
-            if name == "Shape_Area" or name == "Shape_Leng":
-                lyr.DeleteField(i)
-            else:
-                continue
-        ds = None
-        clean_shp = Shp(path=path)
-        return clean_shp
-
-    def _centroid(self):
-        centroid = json.loads(
-            self.feature.GetGeometryRef().Centroid().ExportToJson())
-        center_x = centroid['coordinates'][0]
-        center_y = centroid['coordinates'][1]
-        return center_x, center_y
-
-    def daymet_proj(self):
-        daymet_proj = pycrs.load.from_file("database//climate//Daymet.prj")
-        transformer = pyproj.Transformer.from_crs(self.prj4, daymet_proj.to_proj4())
-        return transformer.transform(self.x_cen, self.y_cen)
-
 
 class dbShp:
     """
