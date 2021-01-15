@@ -23,6 +23,7 @@ class Shp:
         self.shp = ogr.Open(self.path)
         self.lyr = self.shp.GetLayer()
         self.prj = self.shp.GetLayer().GetSpatialRef()
+        self.lyr_0 = self.shp.GetLayer(0)
         self.prj4 = self.prj.ExportToProj4()
         self.feature = self.shp.GetLayer(0).GetFeature(0)
         self.extent = self.feature.GetGeometryRef().GetEnvelope()
@@ -698,7 +699,7 @@ def build_prcp(f, x, y):
 
     # Selecting the variables.
     prcp = nc.variables['prcp'][:]
-    hs = prcp[0, istart:istop, ix, iy]
+    hs = prcp[istart:istop, ix, iy]
     tim = dtime[istart:istop]
 
     # Arranging data into pandas df.
@@ -738,7 +739,7 @@ def build_temps(f, x, y):
 
     # Selecting/subsetting the NetCDF dataset.
     temps = nc.variables['tmax'][:]
-    hs = temps[0, istart:istop, ix, iy]
+    hs = temps[istart:istop, ix, iy]
     tim = dtime[istart:istop]
 
     # Arranging data into pandas df.
@@ -751,7 +752,17 @@ def build_temps(f, x, y):
 
     return temps_ts
 
-
+def tile_number(shp, tilepoly):
+    x, y = shp.daymet_x, shp.daymet_y
+    layer = tilepoly.lyr_0
+    new_point = ogr.CreateGeometryFromWkt("POINT ({} {})".format(x, y))
+    for i in range(layer.GetFeatureCount()):
+        feature = layer.GetFeature(i)
+        if new_point.Within(feature.GetGeometryRef()):
+            poly_json = json.loads(feature.ExportToJson())
+            break
+    id = poly_json["properties"]['Id']
+    return id
 
 
 # Test code from here on down.
@@ -799,8 +810,8 @@ if __name__ == "__main__":
         timeseries = False
     shp = Shp(path=path_to)
 
-    # shp = Shp(path="shapefiles//grapevine.shp")
-    # timeseries = False
+    # shp = Shp(path=r'C:\Users\aheadman\Desktop\RandomScripts\WaterPyGeospatial\shapefiles\grapevine.shp')
+    # timeseries = True
 
     shp.karst_flag = karst_detection(karst_raster, shp)
     out_df = characteristics(db_rasters, shp)
@@ -820,27 +831,18 @@ if __name__ == "__main__":
         out_twi_karst.to_csv("geo_input//twi_karst.csv")
 
     if timeseries:
-        for root, dirs, files in os.walk("database//climate", topdown=False):
-            for file in files:
-                file = os.path.join(root, file)
-                if file.endswith("x.nc"):
-                    if not "temp_ts" in globals():
-                        temp_ts = build_temps(file, shp.x_cen, shp.y_cen)
-                    else:
-                        temp_append = build_temps(file, shp.x_cen, shp.y_cen)
-                        temp_ts = temp_ts.append(temp_append)
-                elif file.endswith("p.nc"):
-                    if not "prcp_ts" in globals():
-                        prcp_ts = build_prcp(file, shp.x_cen, shp.y_cen)
-                    else:
-                        prcp_append = build_prcp(file, shp.x_cen, shp.y_cen)
-                        prcp_ts = prcp_ts.append(prcp_append)
-
-        climate_ts = pd.merge(prcp_ts, temp_ts, on="date")
+        tilepoly = Shp(path="database//Daymet_Tiles.shp")
+        file_t = "database//climate//{}tmax.nc".format(tile_number(shp, tilepoly))
+        file_p = "database//climate//{}prcp.nc".format(tile_number(shp, tilepoly))
+        df_temps = build_temps(file_t, shp.daymet_x, shp.daymet_y)
+        df_prcp = build_prcp(file_p, shp.daymet_x, shp.daymet_y)
+        climate_ts = pd.merge(df_temps, df_prcp, on="date")
         col = climate_ts.columns.tolist()
         col.append(col.pop(0))
         climate_ts = climate_ts[col]
-        climate_ts.to_csv("input//timeseries.csv")
+        climate_ts["flow_observed (mm/day)"] = 0
+        climate_ts.to_csv("geo_input//timeseries.csv")
+
 
 
 
