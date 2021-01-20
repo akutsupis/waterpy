@@ -784,19 +784,20 @@ if __name__ == "__main__":
 
 
     # Input goes here.
-    # print("path to shapefile:")
-    # path_to = input()
-    # path_to = str(path_to)
-    # print("Create time series? y/n")
-    # timeseries = input()
-    # if timeseries.capitalize() == "Y":
-    #     timeseries = True
-    # else:
-    #     timeseries = False
-    # shp = Shp(path=path_to)
+    print("path to shapefile:")
+    path_to = input()
+    path_to = str(path_to)
+    print("Create time series? y/n")
+    timeseries = input()
+    if timeseries.capitalize() == "Y":
+        timeseries = True
+    else:
+        timeseries = False
+    shp = Shp(path=path_to)
 
-    shp = Shp(path=r'C:\Users\aheadman\Desktop\RandomScripts\WaterPyGeospatial\shapefiles\grapevine.shp')
-    timeseries = True
+    # Lines for testing and python enthusiast users:
+    # shp = Shp(path=r'C:\Users\aheadman\Desktop\RandomScripts\WaterPyGeospatial\shapefiles\grapevine.shp')
+    # timeseries = True
 
     shp.karst_flag = karst_detection(karst_raster, shp)
     out_df = characteristics(db_rasters, shp)
