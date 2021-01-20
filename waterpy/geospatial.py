@@ -767,7 +767,7 @@ def build_temps(f, x, y):
 if __name__ == "__main__":
     # Database header
     db_path = "database//"
-    karst_raster = Raster(path="database//sinks_masked.tif")
+    karst_raster = Raster(path="database//sinks.tif")
     karst_shp = Shp(path="database/karst_shp.shp")
     db_rasters = {'awc': Raster(path=db_path + 'HA00_AWC.tif'),
                   'con_mult': Raster(path=db_path + 'HA00_cnmlt.tif'),
@@ -784,20 +784,20 @@ if __name__ == "__main__":
 
 
     # Input goes here.
-    print("path to shapefile:")
-    path_to = input()
-    path_to = str(path_to)
-    print("Create time series? y/n")
-    timeseries = input()
-    if timeseries.capitalize() == "Y":
-        timeseries = True
-    else:
-        timeseries = False
-    shp = Shp(path=path_to)
+    # print("path to shapefile:")
+    # path_to = input()
+    # path_to = str(path_to)
+    # print("Create time series? y/n")
+    # timeseries = input()
+    # if timeseries.capitalize() == "Y":
+    #     timeseries = True
+    # else:
+    #     timeseries = False
+    # shp = Shp(path=path_to)
 
     # Lines for testing and python enthusiast users:
-    # shp = Shp(path=r'C:\Users\aheadman\Desktop\RandomScripts\WaterPyGeospatial\shapefiles\grapevine.shp')
-    # timeseries = True
+    shp = Shp(path=r'C:\Users\aheadman\Desktop\RandomScripts\WaterPyGeospatial\shapefiles\grapevine.shp')
+    timeseries = True
 
     shp.karst_flag = karst_detection(karst_raster, shp)
     out_df = characteristics(db_rasters, shp)
@@ -827,6 +827,16 @@ if __name__ == "__main__":
         col.append(col.pop(0))
         climate_ts = climate_ts[col]
         climate_ts["flow_observed (mm/day)"] = 0
+        climate_ts.to_csv("geo_input//timeseries.csv")
+
+        # Hacking csv file a bit.  There's probably a better solution.
+
+        climate_ts = pd.read_csv("geo_input//timeseries.csv")
+        climate_ts['date'] = pd.to_datetime(climate_ts["date"], format='%Y/%m/%d')
+        climate_ts = climate_ts.set_index("date")
+        if'Unnamed: 0' in climate_ts.columns:
+            climate_ts = climate_ts.drop(columns=['Unnamed: 0'])
+
         climate_ts.to_csv("geo_input//timeseries.csv")
 
     # Test code from here on down.

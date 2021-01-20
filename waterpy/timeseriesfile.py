@@ -45,7 +45,6 @@ def read_in(filestream):
     :rtype: dict
     """
     column_short_names = {
-        #TODO: inputs need some "sanitizing" so they don't throw errors.
         "temperature (celsius)": "temperature",
         "precipitation (mm/day)": "precipitation",
         #"pet (mm/day)": "pet",
