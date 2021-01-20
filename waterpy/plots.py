@@ -1,7 +1,8 @@
 """Module of functions for generating plots.
 
 """
-
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import mpld3
