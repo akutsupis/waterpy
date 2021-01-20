@@ -713,7 +713,7 @@ def build_prcp(f, x, y):
 
     # Selecting the variables.
     prcp = nc.variables['prcp'][:]
-    hs = prcp[0, istart:istop, ix, iy]
+    hs = prcp[istart:istop, ix, iy]
     tim = dtime[istart:istop]
 
     # Arranging data into pandas df.
@@ -753,7 +753,7 @@ def build_temps(f, x, y):
 
     # Selecting/subsetting the NetCDF dataset.
     temps = nc.variables['tmax'][:]
-    hs = temps[0, istart:istop, ix, iy]
+    hs = temps[istart:istop, ix, iy]
     tim = dtime[istart:istop]
 
     # Arranging data into pandas df.
@@ -765,6 +765,7 @@ def build_temps(f, x, y):
     temps_ts.set_index('Index', drop=True, inplace=True)
 
     return temps_ts
+
 
 
 
