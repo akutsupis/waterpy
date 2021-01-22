@@ -332,7 +332,6 @@ def get_output_dataframe(timeseries, preprocessed_data, topmodel_data):
     d = g/86400000
     j = d * n
     output_data["discharge_predicted"] = j
-    #timeseries = timeseries[365:]
     output_df = timeseries.assign(**output_data)
 
     return output_df
