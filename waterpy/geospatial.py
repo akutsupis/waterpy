@@ -54,7 +54,7 @@ class Shp:
         return center_x, center_y
 
     def daymet_proj(self):
-        daymet_proj = pycrs.load.from_file("database//Daymet.prj")
+        daymet_proj = pycrs.load.from_file("database//climate//Daymet.prj")
         transformer = pyproj.Transformer.from_crs(self.prj4, daymet_proj.to_proj4())
         return transformer.transform(self.x_cen, self.y_cen)
 
@@ -817,9 +817,10 @@ if __name__ == "__main__":
         out_twi_karst.to_csv("geo_input//twi_karst.csv")
 
     if timeseries:
-        tilepoly = Shp(path="database//Daymet_Tiles.shp")
+        tilepoly = Shp(path="database//climate//Daymet_Tiles.shp")
         file_t = "database//climate//{}tmax.nc".format(tile_number(shp, tilepoly))
         file_p = "database//climate//{}prcp.nc".format(tile_number(shp, tilepoly))
+        df_temps = build_temps(file_t, shp.daymet_x, shp.daymet_y)
         df_temps = build_temps(file_t, shp.daymet_x, shp.daymet_y)
         df_prcp = build_prcp(file_p, shp.daymet_x, shp.daymet_y)
         climate_ts = pd.merge(df_temps, df_prcp, on="date")
