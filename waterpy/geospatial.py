@@ -326,6 +326,7 @@ def zonal_area(raster, shp):
         src_array,
         mask=np.logical_or(
             src_array == nodata_value,
+            src_array == 0,
             np.logical_not(v_to_r_array)
         ),
         fill_value=np.nan
