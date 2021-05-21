@@ -34,7 +34,7 @@ test_requirements = [
 
 setup(
     name="waterpy",
-    version="0.1",
+    version="0.2",
     description=("A rainfall-runoff model that predicts the amount "
                  "of water flow in rivers."),
     long_description=readme + "\n\n" + changelog,

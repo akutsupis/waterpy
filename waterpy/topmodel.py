@@ -78,8 +78,13 @@ class Topmodel:
                  timestep_daily_fraction=1,
                  option_channel_routing=True,
                  option_karst=False,
-                 option_randomize_daily_to_hourly=False):
+                 option_randomize_daily_to_hourly=False,
+                 option_min_max=False,
+                 option_distribution=False,
+                 option_forecast=False):
+
         self.lake_delay = 1.5  # this is input.
+        self.option_min_max = option_min_max
 
         # Check timestep daily fraction
         if timestep_daily_fraction > 1:
@@ -941,7 +946,7 @@ class Topmodel:
 
         if self.option_randomize_daily_to_hourly:
             self.flow_predicted = (
-                hydrocalcs.sum_hourly_to_daily(self.flow_predicted[self.drop_first:])
+                hydrocalcs.sum_hourly_to_daily(self.flow_predicted[self.drop_first:], minmax=self.option_min_max)
             )
             self.overland_flow = (
                 hydrocalcs.sum_hourly_to_daily(self.overland_flow[self.drop_first:])
