@@ -1,6 +1,6 @@
 Metadata-Version: 1.1
 Name: waterpy
-Version: 0.1
+Version: 0.2
 Summary: A rainfall-runoff model that predicts the amount of water flow in rivers.
 Home-page: UNKNOWN
 Author: Alexander Headman
