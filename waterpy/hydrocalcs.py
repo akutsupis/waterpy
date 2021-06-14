@@ -15,6 +15,7 @@ https://www.nrcs.usda.gov/Internet/FSE_DOCUMENTS/stelprdb1044171.pdf
 """
 
 import numpy as np
+import pandas as pd
 from scipy import stats
 
 
@@ -723,6 +724,30 @@ def randomize(value, size=24):
 
     return randomized
 
+def create_rain_array(rain_file, values):
+    np.random.seed(10)
+    df = pd.read_csv(rain_file)
+    val_len = len(values) + 1
+    val_array = np.array(range(0, val_len))
+
+    rain_dist = []
+    high = len(df.columns) - 1
+
+    rand_array = np.random.randint(low=0, high=high, size=len(val_array))
+
+    for day in rand_array:
+        day_dist = df[df.columns[day]].values
+        for value in day_dist:
+            rain_dist.append(value)
+
+    return np.array(rain_dist)
+
+
+
+
+
+
+
 
 def randomize_daily_to_hourly(values):
     """Generate pseudo random values of a certain size that sum to 1.0.
@@ -794,12 +819,29 @@ def chop_daily_to_hourly(values):
     copied = []
     for value in values:
         hourly_array = np.ones(24) * value / 24
-
         for hourly_value in hourly_array:
             copied.append(hourly_value)
 
     return np.array(copied)
 
+def chop_daily_to_hourly_precip(values, rain_array):
+    """Create hourly values from daily values by evenly chopping each daily value
+    and spreading it across an hourly array.  This is akin to the fortran version
+    of the model.
+
+    :param values: Daily values from timeseries file.
+    :type values: numpy.ndarray
+    :rtype: numpy.ndarray
+    """
+    copied = []
+    i = 0
+    for value in values:
+        hourly_array = np.ones(24) * value * rain_array[i]
+        i += 1
+        for hourly_value in hourly_array:
+            copied.append(hourly_value)
+
+    return np.array(copied)
 
 def sum_hourly_to_daily(values, minmax=False):
     """Create daily values from hourly values by summing in every 24th element

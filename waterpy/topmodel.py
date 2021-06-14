@@ -74,7 +74,7 @@ class Topmodel:
                  grow_trigger,
                  riparian_area,
                  #lake_area,
-
+                 rain_file,
                  timestep_daily_fraction=1,
                  option_channel_routing=True,
                  option_karst=False,
@@ -104,16 +104,25 @@ class Topmodel:
                 "".format(timestep_daily_fraction)
             )
 
+        if option_distribution:
+            self.rain_array = hydrocalcs.create_rain_array(rain_file, precip)
+
         # If option_randomize_daily_to_hourly, then compute updated values for
         # precip_minus_pet, temperature, and timestep_daily_fraction
         # Timestep daily fraction is 3600 seconds per hour / 86400 seconds per day
         if option_randomize_daily_to_hourly:
             self.option_randomize_daily_to_hourly = option_randomize_daily_to_hourly
-            self.precip_available = hydrocalcs.chop_daily_to_hourly(precip_available)
             self.pet_hamon = hydrocalcs.chop_daily_to_hourly(pet_hamon)
-            self.precip = hydrocalcs.chop_daily_to_hourly(precip)
             self.temperatures = hydrocalcs.copy_daily_to_hourly(temperatures)
             self.timestep_daily_fraction = 3600 / 86400
+            if option_distribution:
+                self.precip_available = hydrocalcs.chop_daily_to_hourly_precip(precip_available, self.rain_array)
+                self.precip = hydrocalcs.chop_daily_to_hourly_precip(precip, self.rain_array)
+            else:
+                self.precip_available = hydrocalcs.chop_daily_to_hourly(precip_available)
+                self.precip = hydrocalcs.chop_daily_to_hourly(precip)
+
+
 
         else:
             self.option_randomize_daily_to_hourly = option_randomize_daily_to_hourly

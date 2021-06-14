@@ -40,7 +40,7 @@ def waterpy(configfile, options):
     :type options: Click.obj
     """
     config_data = modelconfigfile.read(configfile)
-    parameters, timeseries, twi = read_input_files(config_data)
+    parameters, timeseries, twi, database = read_input_files(config_data)
     preprocessed_data = preprocess(config_data, parameters, timeseries, twi)
     topmodel_data = run_topmodel(config_data, parameters, timeseries, twi, preprocessed_data)
     postprocess(config_data, timeseries, preprocessed_data, topmodel_data)
@@ -67,8 +67,9 @@ def read_input_files(config_data):
     }
     timeseries = timeseriesfile.read(config_data["Inputs"]["timeseries_file"])
     twi = twifile.read(config_data["Inputs"]["twi_file"])
+    database = config_data["Inputs"]["data_dir"]
 
-    return parameters, timeseries, twi
+    return parameters, timeseries, twi, database
 
 
 def preprocess(config_data, parameters, timeseries, twi):
@@ -97,6 +98,13 @@ def preprocess(config_data, parameters, timeseries, twi):
     :rtype: dict
     """
     # Calculate the daily timestep as a fraction
+    database = config_data["Inputs"]["data_dir"]
+    if config_data["Options"].getboolean("rain_dist"):
+        database = config_data["Inputs"]["data_dir"]
+        rain_dist_file = database + '//' + config_data["Options"]["option_dist_file"]
+    else:
+        rain_dist_file = None
+
     timestep_daily_fraction = (
         (timeseries.index[1] - timeseries.index[0]).total_seconds() / 86400.0
     )
@@ -153,6 +161,7 @@ def preprocess(config_data, parameters, timeseries, twi):
     #Define basin area value
     basin_area = parameters["basin"]["basin_area_total"]["value"]
 
+
     # Return a dict of calculated data
     preprocessed_data = {
         "timestep_daily_fraction": timestep_daily_fraction,
@@ -164,7 +173,8 @@ def preprocess(config_data, parameters, timeseries, twi):
         "snow_water_equivalence": snow_water_equivalence,
         "twi_weighted_mean": twi_weighted_mean,
         "scaling_parameter_adjusted": scaling_parameter_adjusted,
-        "basin_area": basin_area
+        "basin_area": basin_area,
+        "rain_file": rain_dist_file
     }
 
     return preprocessed_data
@@ -219,6 +229,7 @@ def run_topmodel(config_data, parameters, timeseries, twi, preprocessed_data):
         pet_hamon=preprocessed_data["pet"],
         temperatures=timeseries["temperature"].to_numpy(),
         timestep_daily_fraction=preprocessed_data["timestep_daily_fraction"],
+        rain_file=preprocessed_data["rain_file"],
         option_channel_routing=config_data["Options"].getboolean("option_channel_routing"),
         option_karst=config_data["Options"].getboolean("option_karst"),
         option_randomize_daily_to_hourly=config_data["Options"].getboolean("option_randomize_daily_to_hourly"),
@@ -325,21 +336,18 @@ def get_output_dataframe(timeseries, preprocessed_data, topmodel_data):
         output_data["flow_predicted_maximum"] = topmodel_data["flow_predicted"][1]
         output_data["flow_predicted_minimum"] = topmodel_data["flow_predicted"][2]
         output_data["flow_predicted_median"] = topmodel_data["flow_predicted"][3]
-        output_data["flow_predicted_average"] = topmodel_data["flow_predicted"][4] 
-        output_data["discharge_predicted_total"] = (
-                ((preprocessed_data["basin_area"] * 1000000 * 35.31467) / 86400000) * topmodel_data["flow_predicted"][0]
-        )
+        output_data["flow_predicted_average"] = topmodel_data["flow_predicted"][4]
         output_data["discharge_predicted_maximum"] = (
-                ((preprocessed_data["basin_area"] * 1000000 * 35.31467) / 86400000) * topmodel_data["flow_predicted"][1]
+                ((preprocessed_data["basin_area"] * 1000000 * 35.31467) / 3600000) * topmodel_data["flow_predicted"][1]
         )
         output_data["discharge_predicted_minimum"] = (
-                ((preprocessed_data["basin_area"] * 1000000 * 35.31467) / 86400000) * topmodel_data["flow_predicted"][2]
+                ((preprocessed_data["basin_area"] * 1000000 * 35.31467) / 3600000) * topmodel_data["flow_predicted"][2]
         )
         output_data["discharge_predicted_median"] = (
-                ((preprocessed_data["basin_area"] * 1000000 * 35.31467) / 86400000) * topmodel_data["flow_predicted"][3]
+                ((preprocessed_data["basin_area"] * 1000000 * 35.31467) / 3600000) * topmodel_data["flow_predicted"][3]
         )
         output_data["discharge_predicted_average"] = (
-                ((preprocessed_data["basin_area"] * 1000000 * 35.31467) / 86400000) * topmodel_data["flow_predicted"][4]
+                ((preprocessed_data["basin_area"] * 1000000 * 35.31467) / 3600000) * topmodel_data["flow_predicted"][4]
         )
     else:
         output_data["flow_predicted"] = topmodel_data["flow_predicted"]
@@ -438,13 +446,11 @@ def write_output_csv(df, filename, minmax):
             "flow_predicted_median": "flow_predicted median (mm/hour)",
             "flow_predicted_average": "flow_predicted average (mm/hour)",
             "flow_predicted_total": "flow_predicted (mm/day)",
-            "discharge_predicted_minimum": "discharge_predicted minimum (mm/hour)",
-            "discharge_predicted_maximum": "discharge_predicted maximum (mm/hour)",
-            "discharge_predicted_median": "discharge_predicted median (mm/hour)",
-            "discharge_predicted_average": "discharge_predicted average (mm/hour)",
-            "discharge_predicted_total": "discharge_predicted (mm/day)",
+            "discharge_predicted_minimum": "discharge_predicted minimum (cfs)",
+            "discharge_predicted_maximum": "discharge_predicted maximum (cfs)",
+            "discharge_predicted_median": "discharge_predicted median (cfs)",
+            "discharge_predicted_average": "discharge_predicted average (cfs)",
             "infiltration": "infiltration (mm/day)",
-            "discharge_predicted": "discharge_predicted (cfs)",
             "saturation_deficit_avgs": "saturation_deficit_avgs (mm/day)",
             "snowprecip": "snowprecip (mm/day)",
         })
@@ -546,7 +552,7 @@ def plot_output_data(df, comparison_data, path, minmax):
             mode=series.mode()[0],
             max=series.max(),
             min=series.min(),
-            label="{} (mm/day)".format(key),
+            label="{}".format(key),
             filename=filename)
 
     if minmax:
