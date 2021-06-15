@@ -98,10 +98,8 @@ def preprocess(config_data, parameters, timeseries, twi):
     :rtype: dict
     """
     # Calculate the daily timestep as a fraction
-    database = config_data["Inputs"]["data_dir"]
-    if config_data["Options"].getboolean("rain_dist"):
-        database = config_data["Inputs"]["data_dir"]
-        rain_dist_file = database + '//' + config_data["Options"]["option_dist_file"]
+    if config_data["Options"].getboolean("option_distribution_record"):
+        rain_dist_file = config_data["Options"]["option_dist_file"]
     else:
         rain_dist_file = None
 
@@ -234,7 +232,7 @@ def run_topmodel(config_data, parameters, timeseries, twi, preprocessed_data):
         option_karst=config_data["Options"].getboolean("option_karst"),
         option_randomize_daily_to_hourly=config_data["Options"].getboolean("option_randomize_daily_to_hourly"),
         option_min_max=config_data["Options"].getboolean("option_max_min"),
-        option_distribution=config_data["Options"].getboolean("rain_dist"),
+        option_distribution=config_data["Options"].getboolean("option_distribution_record"),
         option_forecast=config_data["Options"].getboolean("forecast")
     )
 

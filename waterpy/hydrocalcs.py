@@ -724,15 +724,28 @@ def randomize(value, size=24):
 
     return randomized
 
+
 def create_rain_array(rain_file, values):
+    """Shuffles the rain distribution columns and creates an array of fractional values the same
+    length as the precip input.  This can be passed to the chop_daily_to_hourly_precip function
+    Every 24 values should sum to ~1.0.
+    :param rain_file: path to .csv ppt distribution file specified in the model config .ini
+    :type rain_file: string
+    :param values: Daily values.
+    :type values: numpy.ndarray
+    :rtype: numpy.ndarray
+    """
+    # Set seed for results
     np.random.seed(10)
+
+    # Read in the PPT csv file and get the length of the precip columns
     df = pd.read_csv(rain_file)
     val_len = len(values) + 1
     val_array = np.array(range(0, val_len))
-
     rain_dist = []
     high = len(df.columns) - 1
 
+    # Randomize the integers to select a column.
     rand_array = np.random.randint(low=0, high=high, size=len(val_array))
 
     for day in rand_array:
@@ -743,15 +756,10 @@ def create_rain_array(rain_file, values):
     return np.array(rain_dist)
 
 
-
-
-
-
-
-
 def randomize_daily_to_hourly(values):
     """Generate pseudo random values of a certain size that sum to 1.0.
     Used to create hourly random values from daily values.
+    Function currently unused in program.
 
     :param values: Daily values to randomize into hourly values.
     :type values: numpy.ndarray
@@ -824,6 +832,7 @@ def chop_daily_to_hourly(values):
 
     return np.array(copied)
 
+
 def chop_daily_to_hourly_precip(values, rain_array):
     """Create hourly values from daily values by evenly chopping each daily value
     and spreading it across an hourly array.  This is akin to the fortran version
@@ -831,17 +840,20 @@ def chop_daily_to_hourly_precip(values, rain_array):
 
     :param values: Daily values from timeseries file.
     :type values: numpy.ndarray
+    :param rain_array: Decimal fraction values from create_rain_array.
+    :type rain_array: numpy.ndarray
     :rtype: numpy.ndarray
     """
     copied = []
     i = 0
     for value in values:
-        hourly_array = np.ones(24) * value * rain_array[i]
-        i += 1
+        hourly_array = np.ones(24) * value
         for hourly_value in hourly_array:
-            copied.append(hourly_value)
+            copied.append(hourly_value * rain_array[i])
+            i += 1
 
     return np.array(copied)
+
 
 def sum_hourly_to_daily(values, minmax=False):
     """Create daily values from hourly values by summing in every 24th element
