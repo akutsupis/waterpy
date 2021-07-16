@@ -1,5 +1,5 @@
 import math
-
+import numpy as np
 
 class Statics:
 
@@ -87,7 +87,7 @@ def infiltration(time, dt, ppt, k0, cd, m, statics):
             add = add + add_0
         f1 = -(math.log(icd) - (math.log(icd) + add) / math.exp(cd * m) - statics.lamb) / (k0 * m) - (
                     t - statics.tp)
-        f2 = (math.exp(statics.i_end * m) - 1) / (icd * k0 * m)
+        f2 = (np.exp(statics.i_end * m) - 1) / (icd * k0 * m)
         df = -f1 / f2
         statics.i_end = statics.i_end + df
         if abs(df) <= 0.000001:

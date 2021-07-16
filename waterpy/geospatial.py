@@ -625,8 +625,8 @@ def characteristics(db_rasters, shp):
         "eff_imp": {0.7},
         "imp_delay": {0.1},
         "twi_adj": {1},
-        "et_exp_dorm": {0},
-        "et_exp_grow": {0},
+        "et_exp_dorm": {5},
+        "et_exp_grow": {0.5},
         "grow_trigger": {15},
     }
     units = ["mm", "mm/day","unitless","mm","fraction","fraction","fraction","degrees", "sq km", "percentage",
