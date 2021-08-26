@@ -473,11 +473,15 @@ class Topmodel:
                 self.infiltration_array[i] = self.zone_infiltration * 1000
                 if self.precip_for_recharge - self.infiltration_array[i] < 1.0e-4:
                     self.infiltration_excess[i] = 0
+                elif self.infiltration_array[i] > self.precip_for_recharge:
+                    self.infiltration_array[i] = self.precip_for_recharge
+                    self.infiltration_excess[i] = 0
                 else:
                     self.infiltration_excess[i] = self.precip_for_recharge - self.infiltration_array[i]
+
                 self.precip_for_recharge = (
                         self.precip_for_recharge - self.infiltration_excess[i]
-                 )
+                     )
 
             # Set the et_exponent based on current temperature
             # Temperature > 15 degrees Celsius means growth
