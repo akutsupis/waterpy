@@ -746,7 +746,7 @@ def create_rain_array(rain_file, values):
     high = len(df.columns) - 1
 
     # Randomize the integers to select a column.
-    rand_array = np.random.randint(low=0, high=high, size=len(val_array))
+    rand_array = np.random.randint(low=1, high=high, size=len(val_array))
 
     for day in rand_array:
         day_dist = df[df.columns[day]].values

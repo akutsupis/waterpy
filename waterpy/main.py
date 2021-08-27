@@ -217,7 +217,7 @@ def run_topmodel(config_data, parameters, timeseries, twi, preprocessed_data):
         eff_imp=parameters["basin"]["eff_imp"]["value"],
         et_exp_dorm=parameters["basin"]["et_exp_dorm"]["value"],
         et_exp_grow=parameters["basin"]["et_exp_grow"]["value"],
-        grow_trigger=parameters["basin"]["grow_trigger"]["value"],
+        grow_trigger=15, #parameters["basin"]["grow_trigger"]["value"],
         riparian_area=parameters["basin"]["rip_area"]["value"],
         twi_values=twi["twi"].to_numpy(),
         twi_saturated_areas=twi["proportion"].to_numpy(),
