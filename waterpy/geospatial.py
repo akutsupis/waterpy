@@ -807,7 +807,6 @@ if __name__ == "__main__":
         file_t = "database//climate//{}tmax.nc".format(tile_number(shp, tilepoly))
         file_p = "database//climate//{}prcp.nc".format(tile_number(shp, tilepoly))
         df_temps = build_temps(file_t, shp.daymet_x, shp.daymet_y)
-        df_temps = build_temps(file_t, shp.daymet_x, shp.daymet_y)
         df_prcp = build_prcp(file_p, shp.daymet_x, shp.daymet_y)
         climate_ts = pd.merge(df_temps, df_prcp, on="date")
         col = climate_ts.columns.tolist()
