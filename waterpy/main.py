@@ -33,7 +33,7 @@ def waterpy(configfile, options):
 
     :param configfile: The file path to the model config file that
     contains model specifications
-    :type param: string
+    :type configfile: string
     :param options: The options sent from the cli
     :type options: Click.obj
     """
