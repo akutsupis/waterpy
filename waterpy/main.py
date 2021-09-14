@@ -1,7 +1,5 @@
 def main():
 
-
-
     """Main module that runs waterpy.
 
     This module contains functionality that:
@@ -149,16 +147,15 @@ def preprocess(config_data, parameters, timeseries, twi):
         precip_minus_pet = timeseries["precipitation"].to_numpy() - pet
     # Calculate the twi weighted mean
     twi_weighted_mean = hydrocalcs.weighted_mean(values=twi["twi"],
-                                                 weights=twi["proportion"]) / parameters["basin"]["twi_adj"]["value"]
+                                                 weights=twi["proportion"]) / parameters["land_type"]["twi_adj"]["value"]
 
     # Adjust the scaling parameter by the spatial coefficient
     scaling_parameter_adjusted = (
         parameters["basin"]["scaling_parameter"]["value"]
         * parameters["land_type"]["spatial_coeff"]["value"]
     )
-    #Define basin area value
+    # Define basin area value
     basin_area = parameters["basin"]["basin_area_total"]["value"]
-
 
     # Return a dict of calculated data
     preprocessed_data = {
@@ -190,6 +187,8 @@ def run_topmodel(config_data, parameters, timeseries, twi, preprocessed_data):
     :param preprocessed_data: A dict of the calculated variables from
                               preprocessing.
     :type: dict
+    :param timeseries: A dataframe for timeseries of temperature, precip and observed flow
+    :type: timeseries: Pandas.DataFrame
     :return topmodel_data: A dict of relevant data results from Topmodel
     :rtype: dict
     """
@@ -213,11 +212,11 @@ def run_topmodel(config_data, parameters, timeseries, twi, preprocessed_data):
         impervious_area_fraction=parameters["basin"]["impervious_area_fraction"]["value"] / 100,
         impervious_curve_number=parameters["land_type"]["impervious_curve_number"]["value"],
         flow_initial=parameters["basin"]["flow_initial"]["value"],
-        twi_adj=parameters["basin"]["twi_adj"]["value"],
-        eff_imp=parameters["basin"]["eff_imp"]["value"],
-        et_exp_dorm=parameters["basin"]["et_exp_dorm"]["value"],
-        et_exp_grow=parameters["basin"]["et_exp_grow"]["value"],
-        grow_trigger=15, #parameters["basin"]["grow_trigger"]["value"],
+        twi_adj=parameters["land_type"]["twi_adj"]["value"],
+        eff_imp=parameters["land_type"]["eff_imp"]["value"],
+        et_exp_dorm=parameters["land_type"]["et_exp_dorm"]["value"],
+        et_exp_grow=parameters["land_type"]["et_exp_grow"]["value"],
+        grow_trigger=parameters["land_type"]["grow_trigger"]["value"],
         riparian_area=parameters["basin"]["rip_area"]["value"],
         twi_values=twi["twi"].to_numpy(),
         twi_saturated_areas=twi["proportion"].to_numpy(),
@@ -253,7 +252,7 @@ def run_topmodel(config_data, parameters, timeseries, twi, preprocessed_data):
         "precip_available": topmodel.precip_available,
         "q_root": topmodel.q_root,
         "sub_flow": topmodel.sub_flow,
-        "karst_flow" : topmodel.karst_flow,
+        "karst_flow": topmodel.karst_flow,
         "imp_flow": topmodel.flow_predicted_impervious,
         "root_zone_avg": topmodel.root_zone_avg,
         "excesses": topmodel.precip_excesses_op,

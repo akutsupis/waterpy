@@ -601,8 +601,7 @@ def get_area(shp):
 
 def characteristics(db_rasters, shp):
     characteristics_out = {
-        "scaling_parameter": {zonal_stats(db_rasters['scaling_parameter'], shp) / 100
-                              },
+        "scaling_parameter": {zonal_stats(db_rasters['scaling_parameter'], shp) / 100},
         "saturated_hydraulic_conductivity": {zonal_stats(db_rasters['k_sat'], shp) / 100 * 86.4},
         "saturated_hydraulic_conductivity_multiplier": {zonal_stats(db_rasters['con_mult'], shp) / 100},
         "soil_depth_total": {zonal_stats(db_rasters["soil_thickness"], shp) / 10},
@@ -620,18 +619,10 @@ def characteristics(db_rasters, shp):
         "stream area": {zonal_area(db_rasters["snet_10m"], shp) / 10e5},
         "lake_area": {0}, #still working
         "up_lake_area" : {0}, #still working
-        "rip_area": {(zonal_area(db_rasters["snet_10m"], shp) / 10e5)},  # stream_area + lake_area,
-        "lake_delay": {0},
-        "eff_imp": {0.7},
-        "imp_delay": {0.1},
-        "twi_adj": {1},
-        "et_exp_dorm": {5},
-        "et_exp_grow": {0.5},
-        "grow_trigger": {15},
+        "rip_area": {(zonal_area(db_rasters["snet_10m"], shp) / 10e5)}  # stream_area + lake_area,
     }
-    units = ["mm", "mm/day","unitless","mm","fraction","fraction","fraction","degrees", "sq km", "percentage",
-             "km", "km/day", "mm/day", "sq km", "sq km", "sq km", "sq km", "days", "fraction", "days", "unitless",
-             "unitless", "unitless", "temp C"]
+    units = ["mm", "mm/day", "unitless", "mm", "fraction", "fraction", "fraction", "degrees", "sq km", "percentage",
+             "km", "km/day", "mm/day", "sq km", "sq km", "sq km", "sq km"]
 
     description = ['controls the rate of decline of transmissivity in the soil profile',
                    'saturated hydraulic conductivity of the C horizon of the soil',
@@ -642,13 +633,7 @@ def characteristics(db_rasters, shp):
                    'centroid latitude of basin', 'total basin area', 'fraction of impervious area of basin',
                    'maximum channel length', 'average channel velocity', 'initial river flow',
                    'total stream surface area', 'total waterbody area', 'total waterbody area upstream',
-                   'total riparian area', 'estimated time for water to move through lake',
-                   'percentage of impervious area connection to stream network',
-                   'estimated delay for impervious runoff to reach stream network',
-                   'Adjustment for magnitude of TWI - must be >= 1.',
-                   'evapotranspiration Exponent for non-growing season.',
-                   'evapotranspiration Exponent for growing season.',
-                   'Temperature (C) transition to/from growing season for ET Exp and AMC.']
+                   'total riparian area']
 
     df = pd.DataFrame.from_dict(characteristics_out, orient="index")
     df.index.name = "name"
