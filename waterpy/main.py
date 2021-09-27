@@ -250,15 +250,15 @@ def run_topmodel(config_data, parameters, timeseries, twi, preprocessed_data):
         "infiltration_excess": topmodel.infiltration_excess,
         "evaporation_actual": topmodel.evaporation_actual,
         "precip_available": topmodel.precip_available,
-        "q_root": topmodel.q_root,
-        "sub_flow": topmodel.sub_flow,
+        #"q_root": topmodel.q_root,
+        #"sub_flow": topmodel.sub_flow,
         "karst_flow": topmodel.karst_flow,
         "imp_flow": topmodel.flow_predicted_impervious,
         "root_zone_avg": topmodel.root_zone_avg,
         "excesses": topmodel.precip_excesses_op,
         "sat_overland_flow": topmodel.pex_flow,
         "return_flow": topmodel.return_flow_totals,
-        "overland_flow": topmodel.overland_flow
+        #"overland_flow": topmodel.overland_flow
     }
 
     return topmodel_data
@@ -323,8 +323,8 @@ def get_output_dataframe(timeseries, preprocessed_data, topmodel_data):
     output_data["precip_minus_pet"] = preprocessed_data["precip_minus_pet"][365:]
     output_data["infiltration"] = topmodel_data["infiltration"]
     output_data["infiltration_excess"] = topmodel_data["infiltration_excess"]
-    output_data["q_root"] = topmodel_data["q_root"]
-    output_data["sub_flow"] = topmodel_data["sub_flow"]
+    #output_data["q_root"] = topmodel_data["q_root"]
+    #output_data["sub_flow"] = topmodel_data["sub_flow"]
     output_data["karst_flow"] = topmodel_data["karst_flow"]
     output_data["imp_flow"] = topmodel_data["imp_flow"]
     output_data["root_zone_avg"] = topmodel_data["root_zone_avg"]
@@ -357,7 +357,7 @@ def get_output_dataframe(timeseries, preprocessed_data, topmodel_data):
     output_data["saturation_deficit_avgs"] = topmodel_data["saturation_deficit_avgs"]
     output_data["sat_overland_flow"] = topmodel_data["sat_overland_flow"]
     output_data["return_flow"] = topmodel_data["return_flow"]
-    output_data["overland_flow"] = topmodel_data["overland_flow"]
+    #output_data["overland_flow"] = topmodel_data["overland_flow"]
     output_df = timeseries.assign(**output_data)
 
     return output_df

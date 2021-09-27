@@ -961,9 +961,9 @@ class Topmodel:
             self.flow_predicted = (
                 hydrocalcs.sum_hourly_to_daily(self.flow_predicted[self.drop_first:], minmax=self.option_min_max)
             )
-            self.overland_flow = (
-                hydrocalcs.sum_hourly_to_daily(self.overland_flow[self.drop_first:])
-            )
+            # self.overland_flow = (
+            #     hydrocalcs.sum_hourly_to_daily(self.overland_flow[self.drop_first:])
+            # )
             self.flow_predicted_impervious = (
                 hydrocalcs.sum_hourly_to_daily(self.flow_predicted_impervious[self.drop_first:])
                 * self.impervious_area_fraction * self.eff_imp
@@ -1001,12 +1001,12 @@ class Topmodel:
             self.root_zone_avg = (
                 hydrocalcs.bind_hourly_to_daily(self.root_zone_avg[self.drop_first:])
             )
-            self.q_root = (
-                hydrocalcs.sum_hourly_to_daily(self.q_root[self.drop_first:])
-            )
-            self.sub_flow = (
-                hydrocalcs.sum_hourly_to_daily(self.sub_flow[self.drop_first:])
-            )
+            # self.q_root = (
+            #     hydrocalcs.sum_hourly_to_daily(self.q_root[self.drop_first:])
+            # )
+            # self.sub_flow = (
+            #     hydrocalcs.sum_hourly_to_daily(self.sub_flow[self.drop_first:])
+            # )
             self.return_flow_totals = (
                 hydrocalcs.sum_hourly_to_daily(self.return_flow_totals[self.drop_first:])
             )
