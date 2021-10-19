@@ -8,7 +8,6 @@ import pyproj
 import netCDF4
 import datetime as dt
 
-
 class Shp:
     """
     Contains various fuctions and metadata desc in init related in SHP objects.
@@ -601,7 +600,8 @@ def get_area(shp):
 
 def characteristics(db_rasters, shp):
     characteristics_out = {
-        "scaling_parameter": {zonal_stats(db_rasters['scaling_parameter'], shp) / 100},
+        "scaling_parameter": {zonal_stats(db_rasters['scaling_parameter'], shp) / 100
+                              },
         "saturated_hydraulic_conductivity": {zonal_stats(db_rasters['k_sat'], shp) / 100 * 86.4},
         "saturated_hydraulic_conductivity_multiplier": {zonal_stats(db_rasters['con_mult'], shp) / 100},
         "soil_depth_total": {zonal_stats(db_rasters["soil_thickness"], shp) / 10},
@@ -619,10 +619,18 @@ def characteristics(db_rasters, shp):
         "stream area": {zonal_area(db_rasters["snet_10m"], shp) / 10e5},
         "lake_area": {0}, #still working
         "up_lake_area" : {0}, #still working
-        "rip_area": {(zonal_area(db_rasters["snet_10m"], shp) / 10e5)}  # stream_area + lake_area,
+        "rip_area": {(zonal_area(db_rasters["snet_10m"], shp) / 10e5)},  # stream_area + lake_area,
+        "lake_delay": {0},
+        "eff_imp": {0.7},
+        "imp_delay": {0.1},
+        "twi_adj": {1},
+        "et_exp_dorm": {0},
+        "et_exp_grow": {0},
+        "grow_trigger": {15},
     }
-    units = ["mm", "mm/day", "unitless", "mm", "fraction", "fraction", "fraction", "degrees", "sq km", "percentage",
-             "km", "km/day", "mm/day", "sq km", "sq km", "sq km", "sq km"]
+    units = ["mm", "mm/day","unitless","mm","fraction","fraction","fraction","degrees", "sq km", "percentage",
+             "km", "km/day", "mm/day", "sq km", "sq km", "sq km", "sq km", "days", "fraction", "days", "unitless",
+             "unitless", "unitless", "temp C"]
 
     description = ['controls the rate of decline of transmissivity in the soil profile',
                    'saturated hydraulic conductivity of the C horizon of the soil',
@@ -633,7 +641,13 @@ def characteristics(db_rasters, shp):
                    'centroid latitude of basin', 'total basin area', 'fraction of impervious area of basin',
                    'maximum channel length', 'average channel velocity', 'initial river flow',
                    'total stream surface area', 'total waterbody area', 'total waterbody area upstream',
-                   'total riparian area']
+                   'total riparian area', 'estimated time for water to move through lake',
+                   'percentage of impervious area connection to stream network',
+                   'estimated delay for impervious runoff to reach stream network',
+                   'Adjustment for magnitude of TWI - must be >= 1.',
+                   'evapotranspiration Exponent for non-growing season.',
+                   'evapotranspiration Exponent for growing season.',
+                   'Temperature (C) transition to/from growing season for ET Exp and AMC.']
 
     df = pd.DataFrame.from_dict(characteristics_out, orient="index")
     df.index.name = "name"
@@ -749,12 +763,11 @@ def build_temps(f, x, y):
 
     return temps_ts
 
-
-if __name__ == "__main__":
+def geospatial(shapefile, DB, ts = False):
     # Database header
-    db_path = "database//"
-    karst_raster = Raster(path="database//sinks.tif")
-    karst_shp = Shp(path="database/karst.shp")
+    db_path = ((DB) + "//database//")
+   # karst_raster = Raster(path="database//sinks.tif")
+   # karst_shp = Shp(path="database/karst.shp")
     db_rasters = {'awc': Raster(path=db_path + 'HA00_AWC.tif'),
                   'con_mult': Raster(path=db_path + 'HA00_cnmlt.tif'),
                   'field_cap': Raster(path=db_path + 'HA00_FC.tif'),
@@ -770,22 +783,22 @@ if __name__ == "__main__":
 
 
     # Input goes here.
-    print("path to shapefile:")
-    path_to = input()
-    path_to = str(path_to)
-    print("Create time series? y/n")
-    timeseries = input()
-    if timeseries.capitalize() == "Y":
-        timeseries = True
-    else:
-        timeseries = False
-    shp = Shp(path=path_to)
+    # print("path to shapefile:")
+    # path_to = input()
+    # path_to = str(path_to)
+    # print("Create time series? y/n")
+    # timeseries = input()
+    # if timeseries.capitalize() == "Y":
+    #     timeseries = True
+    # else:
+    #     timeseries = False
+    # shp = Shp(path=path_to)
 
     # Lines for testing and python enthusiast users:
-    # shp = Shp(path=r'C:\Users\aheadman\Desktop\RandomScripts\WaterPyGeospatial\shapefiles\grapevine.shp')
-    # timeseries = True
+    shp = Shp(path = shapefile)
+    timeseries = ts
 
-    shp.karst_flag = karst_detection(karst_raster, shp)
+   # shp.karst_flag = karst_detection(karst_raster, shp)
     out_df = characteristics(db_rasters, shp)
     out_twi = twi_bins(db_rasters["twi"], shp)
 
@@ -806,6 +819,7 @@ if __name__ == "__main__":
         tilepoly = Shp(path="database//climate//Daymet_Tiles.shp")
         file_t = "database//climate//{}tmax.nc".format(tile_number(shp, tilepoly))
         file_p = "database//climate//{}prcp.nc".format(tile_number(shp, tilepoly))
+        df_temps = build_temps(file_t, shp.daymet_x, shp.daymet_y)
         df_temps = build_temps(file_t, shp.daymet_x, shp.daymet_y)
         df_prcp = build_prcp(file_p, shp.daymet_x, shp.daymet_y)
         climate_ts = pd.merge(df_temps, df_prcp, on="date")
