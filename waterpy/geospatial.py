@@ -494,7 +494,7 @@ def clip(src, shp):
     return karstshp
 
 
-def erase(src, diff):
+def erase(src, diff, shp):
     # not working currently.
 
     driver = ogr.GetDriverByName("ESRI Shapefile")
@@ -620,13 +620,6 @@ def characteristics(db_rasters, shp):
         "lake_area": {0}, #still working
         "up_lake_area" : {0}, #still working
         "rip_area": {(zonal_area(db_rasters["snet_10m"], shp) / 10e5)},  # stream_area + lake_area,
-        "lake_delay": {0},
-        "eff_imp": {0.7},
-        "imp_delay": {0.1},
-        "twi_adj": {1},
-        "et_exp_dorm": {0},
-        "et_exp_grow": {0},
-        "grow_trigger": {15},
     }
     units = ["mm", "mm/day","unitless","mm","fraction","fraction","fraction","degrees", "sq km", "percentage",
              "km", "km/day", "mm/day", "sq km", "sq km", "sq km", "sq km", "days", "fraction", "days", "unitless",
