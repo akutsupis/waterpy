@@ -22,7 +22,6 @@ pathlib==1.0.1
 Pillow==8.0.1
 platformdirs==2.5.2
 PyCRS==1.0.2
-pylint==2.13.5
 pyparsing==2.4.7
 pyproj==3.0.0.post1
 python-dateutil==2.8.1
