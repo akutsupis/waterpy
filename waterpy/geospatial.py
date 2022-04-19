@@ -58,6 +58,12 @@ class Shp:
         transformer = pyproj.Transformer.from_crs(self.prj4, daymet_proj.to_proj4())
         return transformer.transform(self.x_cen, self.y_cen)
 
+    # # Need to create a default projection schema.
+    # def proj_to_schema(self):
+    #     default_proj = 0
+    #     transformer = pyproj.Transformer.from_proj()
+    #     return_var = transformer.transform(self.x_cen, self.y_cen)
+    #     return(0)
 
 class dbShp:
     """
@@ -167,8 +173,6 @@ def karst_detection(raster, shp):
         (r_geotransform[3] + (src_offset[1] * r_geotransform[5])),
         0.0, r_geotransform[5]
     )
-
-    stats = []  # Keeping this unless there are several features in the same shapefile.
 
     driver = gdal.GetDriverByName('MEM')
     v_to_r = driver.Create('', src_offset[2], src_offset[3], 1, gdal.GDT_Byte)
@@ -797,7 +801,7 @@ if __name__ == "__main__":
     shp = Shp(path=path_to)
 
     # Lines for testing and python enthusiast users:
-    # shp = Shp(path=r'C:\Users\aheadman\Desktop\RandomScripts\WaterPyGeospatial\shapefiles\grapevine.shp')
+    # shp = Shp(path=r'path\\to\\shp')
     # timeseries = True
 
     shp.karst_flag = karst_detection(karst_raster, shp)
@@ -840,18 +844,4 @@ if __name__ == "__main__":
             climate_ts = climate_ts.drop(columns=['Unnamed: 0'])
 
         climate_ts.to_csv("geo_input//timeseries.csv")
-
-    # Test code from here on down.
-
-    # shp = Shp(path="shapefiles//RockCastle.shp")
-    # grape = Shp(path="shapefiles//GrapeVine.shp")
-    #
-    # out_twi = twi_bins(db_rasters['twi'], shp)
-    # grape_df = characteristics(db_rasters, grape)
-    # grape_twi = twi_bins(db_rasters['twi'], grape)
-    #
-    # if shp.karst_flag == 1:
-    #     simple = simplify(shp)
-    #     karst = clip(karst_shp, simple)
-
 

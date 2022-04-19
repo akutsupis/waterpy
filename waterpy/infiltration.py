@@ -2,7 +2,7 @@ import math
 
 
 class Statics:
-
+    """Class to hold the static variables between depth and time steps"""
     cumi = 0
     i_end = 0
     lamb = 0
@@ -11,6 +11,8 @@ class Statics:
 
 
 def infiltration(time, dt, ppt, k0, cd, m, statics):
+    """This format is a python adaption from original Bevin fortran 77 code.
+    Variables match the formatting found in that code."""
     f1 = 0.0
     t = time
     if ppt <= 0:
@@ -106,6 +108,7 @@ def infiltration(time, dt, ppt, k0, cd, m, statics):
     return didt
 
 def static_reset(statics):
+    """In the case of no infiltration, statics are reset to 0"""
     statics.cumi = 0
     statics.lamb = 0
     statics.tp = 0

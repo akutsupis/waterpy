@@ -725,6 +725,15 @@ def randomize(value, size=24):
     return randomized
 
 def create_rain_array(rain_file, values):
+    """Creates a random array of rainfall values for hourly distribution
+    :param rain_file: csv file
+    :type rain_file: hourly rainfall distribution file defined in config file.
+    :param values: Value
+    :type values: np.ndarray
+    :return: rain_dist
+    :rtype: np.ndarray
+    """
+
     np.random.seed(10)
     df = pd.read_csv(rain_file)
     val_len = len(values) + 1
@@ -862,6 +871,14 @@ def sum_hourly_to_daily(values, minmax=False):
 
 
 def bind_hourly_to_daily(values):
+    """Create daily values from hourly values by binding the daily values
+    in the array.  This is how temperature and ET is currently handled
+
+    :param values: Hourly values already applicable to daily.
+    :type values: numpy.ndarray
+    :rtype: numpy.ndarray
+
+    """
 
     new_shape = (-1, 24) + values.shape[1:]
     values = values.reshape(new_shape)
