@@ -1,7 +1,5 @@
 def main():
 
-
-
     """Main module that runs waterpy.
 
     This module contains functionality that:
@@ -35,7 +33,7 @@ def waterpy(configfile, options):
 
     :param configfile: The file path to the model config file that
     contains model specifications
-    :type param: string
+    :type configfile: string
     :param options: The options sent from the cli
     :type options: Click.obj
     """
@@ -98,10 +96,8 @@ def preprocess(config_data, parameters, timeseries, twi):
     :rtype: dict
     """
     # Calculate the daily timestep as a fraction
-    database = config_data["Inputs"]["data_dir"]
-    if config_data["Options"].getboolean("rain_dist"):
-        database = config_data["Inputs"]["data_dir"]
-        rain_dist_file = database + '//' + config_data["Options"]["option_dist_file"]
+    if config_data["Options"].getboolean("option_distribution_record"):
+        rain_dist_file = config_data["Options"]["option_dist_file"]
     else:
         rain_dist_file = None
 
@@ -151,16 +147,15 @@ def preprocess(config_data, parameters, timeseries, twi):
         precip_minus_pet = timeseries["precipitation"].to_numpy() - pet
     # Calculate the twi weighted mean
     twi_weighted_mean = hydrocalcs.weighted_mean(values=twi["twi"],
-                                                 weights=twi["proportion"]) / parameters["basin"]["twi_adj"]["value"]
+                                                 weights=twi["proportion"]) / parameters["land_type"]["twi_adj"]["value"]
 
     # Adjust the scaling parameter by the spatial coefficient
     scaling_parameter_adjusted = (
         parameters["basin"]["scaling_parameter"]["value"]
         * parameters["land_type"]["spatial_coeff"]["value"]
     )
-    #Define basin area value
+    # Define basin area value
     basin_area = parameters["basin"]["basin_area_total"]["value"]
-
 
     # Return a dict of calculated data
     preprocessed_data = {
@@ -192,6 +187,8 @@ def run_topmodel(config_data, parameters, timeseries, twi, preprocessed_data):
     :param preprocessed_data: A dict of the calculated variables from
                               preprocessing.
     :type: dict
+    :param timeseries: A dataframe for timeseries of temperature, precip and observed flow
+    :type: timeseries: Pandas.DataFrame
     :return topmodel_data: A dict of relevant data results from Topmodel
     :rtype: dict
     """
@@ -215,11 +212,11 @@ def run_topmodel(config_data, parameters, timeseries, twi, preprocessed_data):
         impervious_area_fraction=parameters["basin"]["impervious_area_fraction"]["value"] / 100,
         impervious_curve_number=parameters["land_type"]["impervious_curve_number"]["value"],
         flow_initial=parameters["basin"]["flow_initial"]["value"],
-        twi_adj=parameters["basin"]["twi_adj"]["value"],
-        eff_imp=parameters["basin"]["eff_imp"]["value"],
-        et_exp_dorm=parameters["basin"]["et_exp_dorm"]["value"],
-        et_exp_grow=parameters["basin"]["et_exp_grow"]["value"],
-        grow_trigger=parameters["basin"]["grow_trigger"]["value"],
+        twi_adj=parameters["land_type"]["twi_adj"]["value"],
+        eff_imp=parameters["land_type"]["eff_imp"]["value"],
+        et_exp_dorm=parameters["land_type"]["et_exp_dorm"]["value"],
+        et_exp_grow=parameters["land_type"]["et_exp_grow"]["value"],
+        grow_trigger=parameters["land_type"]["grow_trigger"]["value"],
         riparian_area=parameters["basin"]["rip_area"]["value"],
         twi_values=twi["twi"].to_numpy(),
         twi_saturated_areas=twi["proportion"].to_numpy(),
@@ -234,7 +231,7 @@ def run_topmodel(config_data, parameters, timeseries, twi, preprocessed_data):
         option_karst=config_data["Options"].getboolean("option_karst"),
         option_randomize_daily_to_hourly=config_data["Options"].getboolean("option_randomize_daily_to_hourly"),
         option_min_max=config_data["Options"].getboolean("option_max_min"),
-        option_distribution=config_data["Options"].getboolean("rain_dist"),
+        option_distribution=config_data["Options"].getboolean("option_distribution_record"),
         option_forecast=config_data["Options"].getboolean("forecast")
     )
 
@@ -253,15 +250,15 @@ def run_topmodel(config_data, parameters, timeseries, twi, preprocessed_data):
         "infiltration_excess": topmodel.infiltration_excess,
         "evaporation_actual": topmodel.evaporation_actual,
         "precip_available": topmodel.precip_available,
-        "q_root": topmodel.q_root,
-        "sub_flow": topmodel.sub_flow,
-        "karst_flow" : topmodel.karst_flow,
+        #"q_root": topmodel.q_root,
+        #"sub_flow": topmodel.sub_flow,
+        "karst_flow": topmodel.karst_flow,
         "imp_flow": topmodel.flow_predicted_impervious,
         "root_zone_avg": topmodel.root_zone_avg,
         "excesses": topmodel.precip_excesses_op,
         "sat_overland_flow": topmodel.pex_flow,
         "return_flow": topmodel.return_flow_totals,
-        "overland_flow": topmodel.overland_flow
+        #"overland_flow": topmodel.overland_flow
     }
 
     return topmodel_data
@@ -326,8 +323,8 @@ def get_output_dataframe(timeseries, preprocessed_data, topmodel_data):
     output_data["precip_minus_pet"] = preprocessed_data["precip_minus_pet"][365:]
     output_data["infiltration"] = topmodel_data["infiltration"]
     output_data["infiltration_excess"] = topmodel_data["infiltration_excess"]
-    output_data["q_root"] = topmodel_data["q_root"]
-    output_data["sub_flow"] = topmodel_data["sub_flow"]
+    #output_data["q_root"] = topmodel_data["q_root"]
+    #output_data["sub_flow"] = topmodel_data["sub_flow"]
     output_data["karst_flow"] = topmodel_data["karst_flow"]
     output_data["imp_flow"] = topmodel_data["imp_flow"]
     output_data["root_zone_avg"] = topmodel_data["root_zone_avg"]
@@ -360,7 +357,7 @@ def get_output_dataframe(timeseries, preprocessed_data, topmodel_data):
     output_data["saturation_deficit_avgs"] = topmodel_data["saturation_deficit_avgs"]
     output_data["sat_overland_flow"] = topmodel_data["sat_overland_flow"]
     output_data["return_flow"] = topmodel_data["return_flow"]
-    output_data["overland_flow"] = topmodel_data["overland_flow"]
+    #output_data["overland_flow"] = topmodel_data["overland_flow"]
     output_df = timeseries.assign(**output_data)
 
     return output_df

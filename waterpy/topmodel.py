@@ -473,11 +473,15 @@ class Topmodel:
                 self.infiltration_array[i] = self.zone_infiltration * 1000
                 if self.precip_for_recharge - self.infiltration_array[i] < 1.0e-4:
                     self.infiltration_excess[i] = 0
+                elif self.infiltration_array[i] > self.precip_for_recharge:
+                    self.infiltration_array[i] = self.precip_for_recharge
+                    self.infiltration_excess[i] = 0
                 else:
                     self.infiltration_excess[i] = self.precip_for_recharge - self.infiltration_array[i]
+
                 self.precip_for_recharge = (
                         self.precip_for_recharge - self.infiltration_excess[i]
-                 )
+                     )
 
             # Set the et_exponent based on current temperature
             # Temperature > 15 degrees Celsius means growth
@@ -957,9 +961,9 @@ class Topmodel:
             self.flow_predicted = (
                 hydrocalcs.sum_hourly_to_daily(self.flow_predicted[self.drop_first:], minmax=self.option_min_max)
             )
-            self.overland_flow = (
-                hydrocalcs.sum_hourly_to_daily(self.overland_flow[self.drop_first:])
-            )
+            # self.overland_flow = (
+            #     hydrocalcs.sum_hourly_to_daily(self.overland_flow[self.drop_first:])
+            # )
             self.flow_predicted_impervious = (
                 hydrocalcs.sum_hourly_to_daily(self.flow_predicted_impervious[self.drop_first:])
                 * self.impervious_area_fraction * self.eff_imp
@@ -997,12 +1001,12 @@ class Topmodel:
             self.root_zone_avg = (
                 hydrocalcs.bind_hourly_to_daily(self.root_zone_avg[self.drop_first:])
             )
-            self.q_root = (
-                hydrocalcs.sum_hourly_to_daily(self.q_root[self.drop_first:])
-            )
-            self.sub_flow = (
-                hydrocalcs.sum_hourly_to_daily(self.sub_flow[self.drop_first:])
-            )
+            # self.q_root = (
+            #     hydrocalcs.sum_hourly_to_daily(self.q_root[self.drop_first:])
+            # )
+            # self.sub_flow = (
+            #     hydrocalcs.sum_hourly_to_daily(self.sub_flow[self.drop_first:])
+            # )
             self.return_flow_totals = (
                 hydrocalcs.sum_hourly_to_daily(self.return_flow_totals[self.drop_first:])
             )

@@ -1,5 +1,5 @@
 import math
-
+import numpy as np
 
 class Statics:
     """Class to hold the static variables between depth and time steps"""
@@ -28,14 +28,14 @@ def infiltration(time, dt, ppt, k0, cd, m, statics):
     if statics.pond == 0:
         if statics.cumi > 0:
             f1 = statics.cumi
-            nf = -k0 * m * (cd + f1) / (1 - math.exp(f1 * m))
+            nf = -k0 * m * (cd + f1) / (1 - np.exp(f1 * m))
             if nf < ppt:
                 statics.i_end = statics.cumi
                 statics.tp = t - dt
                 statics.pond = 1
                 statics.lamb = 0
         f2 = statics.cumi + ppt * dt
-        nf = (-k0 * m * (cd + f2)) / (1 - math.exp(f2 * m))
+        nf = (-k0 * m * (cd + f2)) / (1 - np.exp(f2 * m))
         if f2 == 0.0 or nf > ppt:
             didt = ppt
             statics.cumi = statics.cumi + didt * dt
@@ -44,7 +44,7 @@ def infiltration(time, dt, ppt, k0, cd, m, statics):
 
         statics.i_end = statics.cumi + nf * dt
         for i in range(0, 21):
-            nf = -k0 * m * (cd + statics.i_end) / (1 - math.exp(statics.i_end * m))
+            nf = -k0 * m * (cd + statics.i_end) / (1 - np.exp(statics.i_end * m))
             if nf > ppt:
                 f1 = statics.i_end
                 statics.i_end = (statics.i_end + f2) / 2.0
@@ -74,7 +74,7 @@ def infiltration(time, dt, ppt, k0, cd, m, statics):
             fact = fact * j
             add = (icd * m) ** j / (j * fact)
             statics.lamb = statics.lamb + add
-        statics.lamb = math.log(icd) - (math.log(icd) + statics.lamb) / math.exp(cd * m)
+        statics.lamb = math.log(icd) - (math.log(icd) + statics.lamb) / np.exp(cd * m)
 
         statics.ponding = 1
 
@@ -87,9 +87,9 @@ def infiltration(time, dt, ppt, k0, cd, m, statics):
             fact = fact * j
             add_0 = math.pow((icd * m), j) / (j * fact)
             add = add + add_0
-        f1 = -(math.log(icd) - (math.log(icd) + add) / math.exp(cd * m) - statics.lamb) / (k0 * m) - (
+        f1 = -(math.log(icd) - (math.log(icd) + add) / np.exp(cd * m) - statics.lamb) / (k0 * m) - (
                     t - statics.tp)
-        f2 = (math.exp(statics.i_end * m) - 1) / (icd * k0 * m)
+        f2 = (np.exp(statics.i_end * m) - 1) / (icd * k0 * m)
         df = -f1 / f2
         statics.i_end = statics.i_end + df
         if abs(df) <= 0.000001:

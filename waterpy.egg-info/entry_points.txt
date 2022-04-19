@@ -1,3 +1,0 @@
-[console_scripts]
-waterpy = waterpy.cli:main
-
