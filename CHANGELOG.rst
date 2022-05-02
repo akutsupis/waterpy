@@ -4,9 +4,13 @@ Changelog
 
 Version 0.1.0
 -------------
+<<<<<<< CHANGELOG.rst
 2022-05-02
 ----------
 - Final commit before technical review.
+
+=======
+>>>>>>> CHANGELOG.rst
 
 2019-08-07
 ----------
