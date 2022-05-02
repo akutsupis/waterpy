@@ -4,6 +4,9 @@ Changelog
 
 Version 0.1.0
 -------------
+2022-05-02
+----------
+- Final commit before technical review.
 
 2019-08-07
 ----------

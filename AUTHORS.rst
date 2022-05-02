@@ -15,4 +15,5 @@ Core Developers
 Contributors
 ------------
 
-- name <email>
+- Tanja Williamson
+- Dayle Hoefling
