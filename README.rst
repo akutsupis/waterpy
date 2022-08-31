@@ -63,11 +63,9 @@ ScienceBase at https://www.sciencebase.gov/catalog/item/5f7e339682ce1d74e7dda351
 Geospatial tools also require a polygon shapefile of the basin area.  An example
 shapefile is provided for use with this database in /example/Hope
 The geospatial tools can be run from the command line.  Nagivate to the sample
-directory as geospatial.py:
+directory as geospatial.py:::
 
-::
     $ python geospatial.py
-
 
 Requirements
 ------------
@@ -172,7 +170,7 @@ If you do not have Python_ installed, please download the latest version from `P
 | usually specifies that the module/package has been packaged and distributed with the standard Python distribution
 | package called Distutils_.
 
-4. To install GDAL python geospatial .whl files are included for Python 3.7-3.9.  
+4. To install GDAL python geospatial .whl files are included for Python 3.7-3.9.::  
 
 	$ pip install /utilities/GDAL-3.1.2-cp38-cp38-win_amd64.whl
 
@@ -241,4 +239,3 @@ Jeremiah Lant <jlant@usgs.gov>
 .. _United States Department of Interior: https://www.doi.gov/
 .. _official USGS copyright policy: http://www.usgs.gov/visual-id/credit_usgs.html#copyright/
 .. _U.S. Geological Survey (USGS) Software User Rights Notice: http://water.usgs.gov/software/help/notice/
-.. _Python's download page: https://www.python.org/downloads/
