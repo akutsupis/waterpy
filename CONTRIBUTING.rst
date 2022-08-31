@@ -114,18 +114,4 @@ Before you submit a pull request, check that it meets these guidelines:
 2. If the pull request adds functionality, the docs should be updated. Put
    your new functionality into a function with a docstring, and add the
    feature to the list in README.rst.
-3. The pull request should work for Python 2.6, 2.7, 3.3, and 3.4.
-
-Tips
-----
-
-To run a subset of tests::
-
-    $ py.test tests/test_<your-awesome-module>.py
-
-
-.. _virtualenv: https://virtualenv.pypa.io/en/latest/
-.. _conda: http://conda.pydata.org/
-.. _virtualenvwrapper: http://virtualenvwrapper.readthedocs.io/en/latest/
-.. _flake8: https://flake8.readthedocs.io/en/latest/
-.. _tox: http://tox.readthedocs.io/en/latest/
+3. The pull request should work for Python 3.7+

@@ -131,12 +131,12 @@ def bbox_to_pixel_offsets(gt, bbox):
     ysize = y2 - y1
     return x1, y1, xsize, ysize
 
-
 def karst_detection(raster, shp):
     """
     :param raster: Raster class object built from karst raster.
     :param shp: SHP class object from entire basin.
     :return: Shp.karst_flag will be triggered, or it won't.
+    this feature is currently in pre-beta
     """
 
     r_data = raster.data
@@ -189,7 +189,6 @@ def karst_detection(raster, shp):
         return 1
     else:
         return 0
-
 
 def zonal_stats(raster, shp):
     """
@@ -268,7 +267,6 @@ def zonal_stats(raster, shp):
     stats.append(feature_stats)
     return feature_stats['mean']
 
-
 def zonal_area(raster, shp):
     """
     Converts a shp file into a raster mask.  Masks off a polygon and extracts statistics from the area within the mask.
@@ -338,7 +336,6 @@ def zonal_area(raster, shp):
     )
 
     return float(masked.count() * 100)
-
 
 def twi_bins(raster, shp, nbins=30):
 
@@ -425,7 +422,6 @@ def twi_bins(raster, shp, nbins=30):
 
     return df
 
-
 def simplify(src):
 
     driver = ogr.GetDriverByName("ESRI Shapefile")
@@ -449,7 +445,6 @@ def simplify(src):
     out_ds = None
     out_shp = dbShp(path=out_path)
     return out_shp
-
 
 def clip(src, shp):
     """
@@ -498,92 +493,6 @@ def clip(src, shp):
 
     return karstshp
 
-
-def erase(src, diff):
-    # not working currently.
-
-    driver = ogr.GetDriverByName("ESRI Shapefile")
-    src_ds = driver.Open(src.path, 0)
-    src_layer = src_ds.GetLayer()
-    src_feature = src_layer.GetFeature(0)
-
-    diff_ds = driver.Open(diff.path, 0)
-    diff_layer = diff_ds.GetLayer()
-    diff_feature = diff_layer.GetFeature(0)
-    srs = osr.SpatialReference()
-    srs.ImportFromProj4(src.prj4)
-
-    out_path = shp.path[:-4] + '_notkarst.shp'
-    if os.path.exists(out_path):
-        driver.DeleteDataSource(out_path)
-
-    out_ds = driver.CreateDataSource(out_path)
-    out_layer = out_ds.CreateLayer('', srs=srs, geom_type=ogr.wkbMultiPolygon)
-    out_defn = out_layer.GetLayerDefn()
-    out_feature = ogr.Feature(out_defn)
-    src_geom = src_feature.GetGeometryRef()
-    diff_geom = diff_feature.GetGeometryRef()
-    src_diff = src_geom.Difference(diff_geom)
-    out_feature.SetGeometry(src_diff)
-
-    wkt = out_feature.geometry().ExportToWkt()
-    out_layer.CreateFeature(out_feature)
-    karstless = dbShp(path=out_path)
-    return karstless
-
-
-def dissolve_polygon(raster, shp):
-    """
-    Needs work.
-
-    :param raster: use karst_raster or any soil raster.  We just need the GT object
-    :param shp: shp file to be dissolved
-    :return: raster object of dissolved shp file.
-    """
-    gt = raster.gt()
-    x_min = gt[0]
-    y_max = gt[3]
-    x_res = raster.data.RasterXSize
-    y_res = raster.data.RasterYSize
-    x_max = x_min + gt[1] * x_res
-    y_min = y_max + gt[5] * y_res
-    pixel_width = gt[1]
-
-    if not os.path.exists('temp_shapefiles'):
-        os.mkdir('temp_shapefiles')
-
-    out_file = "temp_shapefiles//karst_flat.shp"
-    target_ds = gdal.GetDriverByName('MEM').Create('', x_res, y_res, 1, gdal.GDT_Byte)
-    target_ds.SetGeoTransform((x_min, pixel_width, 0, y_min, 0, pixel_width))
-    band = target_ds.GetRasterBand(1)
-    band.SetNoDataValue(0)
-    band.FlushCache()
-    gdal.RasterizeLayer(target_ds, [1], shp.lyr, options=["ATTRIBUTE=Gridcode"])
-    driver = ogr.GetDriverByName("ESRI Shapefile")
-    out_ds = driver.CreateDataSource(out_file)
-    srs = osr.SpatialReference()
-    srs.ImportFromProj4(shp.prj4)
-    out_lyr = out_ds.CreateLayer(out_file, srs=srs)
-    fd = ogr.FieldDefn("DN", ogr.OFTInteger)
-    out_lyr.CreateField(fd)
-    gdal.Polygonize(band, band, out_lyr, -1, [])
-    multi = ogr.Geometry(ogr.wkbMultiPolygon)
-    for feat in out_lyr:
-        if feat.geometry():
-            feat.geometry().CloseRings()  # this copies the first point to the end
-            wkt = feat.geometry().ExportToWkt()
-            multi.AddGeometryDirectly(ogr.CreateGeometryFromWkt(wkt))
-            out_lyr.DeleteFeature(feat.GetFID())
-    union = multi.UnionCascaded()
-    out_feat = ogr.Feature(out_lyr.GetLayerDefn())
-    out_feat.SetGeometry(union)
-    out_lyr.CreateFeature(out_feat)
-
-    flat = dbShp(path=out_file)
-    target_ds = None
-    return flat
-
-
 def deg_lat(shp):
     in_srs = osr.SpatialReference()
     in_srs.ImportFromProj4(shp.prj4)
@@ -596,12 +505,10 @@ def deg_lat(shp):
 
     return point.GetX()
 
-
 def get_area(shp):
     geom = shp.feature.GetGeometryRef()
     area = geom.GetArea()
     return area
-
 
 def characteristics(db_rasters, shp):
     characteristics_out = {
@@ -662,7 +569,6 @@ def characteristics(db_rasters, shp):
 
     return df
 
-
 def near(array, value):
     """
     array: 2d Array of values taken from daymet NetCDF input file.
@@ -675,7 +581,6 @@ def near(array, value):
     idx = (abs(array - value)).argmin()
     return idx
 
-
 def tile_number(shp, tilepoly):
     x, y = shp.daymet_x, shp.daymet_y
     layer = tilepoly.lyr_0
@@ -687,7 +592,6 @@ def tile_number(shp, tilepoly):
             break
     id = poly_json["properties"]['Id']
     return id
-
 
 def build_prcp(f, x, y):
     """
@@ -727,7 +631,6 @@ def build_prcp(f, x, y):
     prcp_ts.set_index('Index', drop=True, inplace=True)
 
     return prcp_ts
-
 
 def build_temps(f, x, y):
     """
@@ -804,7 +707,6 @@ if __name__ == "__main__":
     # shp = Shp(path=r'path\\to\\shp')
     # timeseries = True
 
-    shp.karst_flag = karst_detection(karst_raster, shp)
     out_df = characteristics(db_rasters, shp)
     out_twi = twi_bins(db_rasters["twi"], shp)
 
@@ -836,12 +738,10 @@ if __name__ == "__main__":
         climate_ts.to_csv("geo_input//timeseries.csv")
 
         # Hacking csv file a bit.  There's probably a better solution.
-
         climate_ts = pd.read_csv("geo_input//timeseries.csv")
         climate_ts['date'] = pd.to_datetime(climate_ts["date"], format='%Y/%m/%d')
         climate_ts = climate_ts.set_index("date")
         if'Unnamed: 0' in climate_ts.columns:
             climate_ts = climate_ts.drop(columns=['Unnamed: 0'])
-
         climate_ts.to_csv("geo_input//timeseries.csv")
 

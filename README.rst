@@ -40,6 +40,8 @@ Features
 Example
 -------
 
+To run the provided example edit the provided .ini files and insert the path names for the
+input/output directory and location of the database directory.
 To run waterpy, give waterpy the command `run` along with the path to the 
 model configuration file:
 
@@ -55,44 +57,94 @@ A sample model configuration file called `modelconfig.ini` is located in the
 `data/` directory along with sample input files located in the `inputs/`
 directory and sample output files located in the `outputs/` directory.
 
+The use of the geospatial tools requires a download/creationg of relevant files.
+A database compiled for the state of Kentucky is available for download from
+ScienceBase at https://www.sciencebase.gov/catalog/item/5f7e339682ce1d74e7dda351.
+Geospatial tools also require a polygon shapefile of the basin area.  An example
+shapefile is provided for use with this database in /example/Hope
+The geospatial tools can be run from the command line.  Nagivate to the sample
+directory as geospatial.py:
 
-Documentation
--------------
-
-An initial website of documentation is located in the `docs` directory.
-
-
-Tests
------
-
-A suite of tests were built using `pytest <http://pytest.org/latest/>`_.
-
-To run the test suite, from the command line in the project's root directory::
-
-    $ py.test tests/
-
+::
+    $ python geospatial.py
 
 
 Requirements
 ------------
 
+This packages requires python3.  Use of the geospatial tools requires Python 3.7, 3.8 or 3.9
+if packages are installed through pip install.
 The following are the main requirements/dependencies:
 
-Click==7.0    
+astroid==2.11.2
 
-Jinja2==2.10.1      
+certifi==2020.11.8
 
-matplotlib==3.0.3     
+cftime==1.3.0
 
-mpld3==0.3     
+click==7.1.2
 
-numpy==1.16.2     
+colorama==0.4.4
 
-pandas==0.24.1     
+configparser==5.0.1
 
-pytest==4.3.0     
+cycler==0.10.0
 
-scipy==1.2.1     
+dill==0.3.4
+
+GDAL==3.1.2
+
+isort==5.10.1
+
+Jinja2==2.11.2
+
+kiwisolver==1.3.1
+
+lazy-object-proxy==1.7.1
+
+MarkupSafe==1.1.1
+
+matplotlib==3.3.3
+
+mccabe==0.7.0
+
+mpld3==0.5.1
+
+netCDF4==1.5.4
+
+numpy==1.19.4
+
+pandas==1.1.4
+
+pathlib==1.0.1
+
+Pillow==8.0.1
+
+platformdirs==2.5.2
+
+PyCRS==1.0.2
+
+pyparsing==2.4.7
+
+pyproj==3.0.0.post1
+
+python-dateutil==2.8.1
+
+pytz==2020.4
+
+scipy==1.5.4
+
+Shapely==1.7.1
+
+six==1.15.0
+
+tomli==2.0.1
+
+typed-ast==1.5.3
+
+typing-extensions==4.2.0
+
+wrapt==1.14.0 
 
 
 Installation
@@ -120,21 +172,20 @@ If you do not have Python_ installed, please download the latest version from `P
 | usually specifies that the module/package has been packaged and distributed with the standard Python distribution
 | package called Distutils_.
 
-4. Run `setup.py` with the `install` command::
+4. To install GDAL python geospatial .whl files are included for Python 3.7-3.9.  
 
-    $ python setup.py install
+	$ pip install /utilities/GDAL-3.1.2-cp38-cp38-win_amd64.whl
+
+	replace cp38 with you version of python.
+
+5. pip install requirements.txt
+	
+6. Run `setup.py` with the `install` command::
+
+    $ python setup.py install 
 
 waterpy will now be installed to the standard location for third-party Python modules on your
 computer platform.
-
-All the required 3rd party packages in the "Requirements" section should be installed as well,
-however, if the additional packages are not installed you can manually install them using `pip`::
-
-    $ pip install click jinja2 matplotlib mpld3 numpy pandas scipy
-
-or from within the parent *waterpy* directory::
-
-    $ pip install requirements.txt
 
 For more information regarding installing third-party Python modules, please see `Installing Python Modules`_
 For a description of how installation works including where the module will be installed on your computer platform,
@@ -186,20 +237,8 @@ Jeremiah Lant <jlant@usgs.gov>
 
 
 .. _Python: https://www.python.org/
-.. _pytest: http://pytest.org/latest/
-.. _Click: https://click.palletsprojects.com/
-.. _Sphinx: http://sphinx-doc.org/
-.. _public domain: https://en.wikipedia.org/wiki/Public_domain
-.. _CC0 1.0: http://creativecommons.org/publicdomain/zero/1.0/
 .. _U.S. Geological Survey: https://www.usgs.gov/
-.. _USGS: https://www.usgs.gov/
-.. _U.S. Geological Survey (USGS): https://www.usgs.gov/
 .. _United States Department of Interior: https://www.doi.gov/
 .. _official USGS copyright policy: http://www.usgs.gov/visual-id/credit_usgs.html#copyright/
 .. _U.S. Geological Survey (USGS) Software User Rights Notice: http://water.usgs.gov/software/help/notice/
 .. _Python's download page: https://www.python.org/downloads/
-.. _git: https://git-scm.com/
-.. _Distutils: https://docs.python.org/3/library/distutils.html
-.. _Installing Python Modules: https://docs.python.org/3.5/install/
-.. _How Installation Works: https://docs.python.org/3.5/install/#how-installation-works
-.. _topmodelpy: https://github.com/jlant/topmodelpy

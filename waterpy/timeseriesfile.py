@@ -47,7 +47,7 @@ def read_in(filestream):
     column_short_names = {
         "temperature (celsius)": "temperature",
         "precipitation (mm/day)": "precipitation",
-        #"pet (mm/day)": "pet",
+        "pet (mm/day)": "pet",
         "flow_observed (mm/day)": "flow_observed",
     }
 

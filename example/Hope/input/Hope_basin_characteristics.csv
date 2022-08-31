@@ -1,0 +1,25 @@
+name,value,units,description
+scaling_parameter,80.98480578,mm,controls the rate of decline of transmissivity in the soil profile
+saturated_hydraulic_conductivity,816.5454042,mm/day,saturated hydraulic conductivity of the C horizon of the soil
+saturated_hydraulic_conductivity_multiplier,4.026842231,unitless,multiplier to apply to saturated hydraulic conductivity 
+soil_depth_total,1061.409271,mm,soil depth
+field_capacity_fraction,0.292029977,fraction,fraction of soil moisture or water content in the soil after excess water has drained away
+porosity_fraction,0.384497889,fraction,fraction of soil that is porous and is always larger than field_capacity_fraction
+wilting_point_fraction,0.13217796,fraction,fraction amount of the minimal amount of water in the soil that plants require not to wilt
+latitude,39.34251494,degrees,centroid latitude of basin
+basin_area_total,45.9986,sq km,total basin area
+impervious_area_fraction,1.313083442,percentage,fraction of impervious area of basin
+channel_length_max,2,km,maximum channel length
+channel_velocity_avg,10,km/day,average channel velocity
+flow_initial,0.1,mm/day,initial river flow
+stream area,0.7761,sq km,total stream surface area
+lake_area,0,sq km,total waterbody area
+up_lake_area,0,sq km,total waterbody area upstream
+rip_area,0.7761,sq km,total riparian area
+lake_delay,0,days,estimated time for water to move through lake
+eff_imp,0.7,fraction,percentage of impervious area connection to stream network
+imp_delay,0.1,days,estimated delay for impervious runoff to reach stream network
+twi_adj,1,unitless,Adjustment for magnitude of TWI - must be >= 1.
+et_exp_dorm,0,unitless,evapotranspiration Exponent for non-growing season.
+et_exp_grow,0,unitless,evapotranspiration Exponent for growing season.
+grow_trigger,15,temp C,Temperature (C) transition to/from growing season for ET Exp and AMC.
