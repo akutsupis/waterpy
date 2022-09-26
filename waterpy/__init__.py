@@ -12,4 +12,4 @@
     :license: CC0 1.0, see LICENSE file for details
 """
 
-__version__ = "0.2.0"
+__version__ = "0.1.0"
