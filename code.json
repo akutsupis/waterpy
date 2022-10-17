@@ -4,7 +4,7 @@
     "organization": "U.S. Geological Survey",
     "description": "waterpy is a rainfall-runoff model that predicts the amount of water flow in rivers. Waterpy is a command line application written in Python using Click",
     "version": "0.1.0",
-    "status": "RELEASE_STATUS",
+    "status": "RELEASED",
 
     "permissions": {
       "usageType": "openSource",
