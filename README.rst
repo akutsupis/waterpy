@@ -2,10 +2,10 @@
         :target: http://www.usgs.gov/
         :alt: U.S. Geological Survey logo
 
-waterpy
+WATERpy
 ===============================
 
-*waterpy* is a rainfall-runoff model that predicts the amount of water
+*WATERpy* is a rainfall-runoff model that predicts the amount of water
 flow in rivers. *waterpy* is a command line application written in Python
 using Click_, and is a complete conversion of the original rainfall-runoff
 model, called Topmodel, from Fortran to Python. The specific version of 
