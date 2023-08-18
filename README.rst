@@ -227,11 +227,12 @@ distribution constitute any such warranty, and no responsibility is assumed by t
 This software is provided "AS IS."
 
 
-Author
+Authors
 ------
 
 Alex Headman <AHeadman@usgs.gov>
 Jeremiah Lant <jlant@usgs.gov>
+Mallory Gerzan <mgerzan@usgs.gov>
 
 
 .. _Python: https://www.python.org/
