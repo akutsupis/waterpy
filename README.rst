@@ -8,9 +8,9 @@ WATERpy
 *WATERpy* is a rainfall-runoff model that predicts the amount of water
 flow in rivers. *waterpy* is a command line application written in Python
 using Click_, and is a complete conversion of the original rainfall-runoff
-model, called Topmodel, from Fortran to Python. The specific version of 
-Topmodel that *waterpy* was initially based on a version by David Wolock, 
-U.S. Geological Survey. Please see report below for more details: 
+model, called Topmodel, from Fortran to Python. The specific version of
+Topmodel that *waterpy* was initially based on a version by David Wolock,
+U.S. Geological Survey. Please see report below for more details:
 
         Wolock, D.M., "Simulating the variable-source-area concept of
         streamflow generation with the watershed model Topmodel", U.S. Geological
@@ -18,7 +18,7 @@ U.S. Geological Survey. Please see report below for more details:
 
 The David Wolock version was recoded and reproduced in the `topmodelpy`_ project.
 
-*waterpy* is a fork of the David Wolock version with many modifications in an 
+*waterpy* is a fork of the David Wolock version with many modifications in an
 attempt to replicate the Topmodel versions by Leon Kaufmann (USGS) and
 Tanja Williamson (USGS). Please see report below for more details:
 
@@ -42,7 +42,7 @@ Example
 
 To run the provided example edit the provided .ini files and insert the path names for the
 input/output directory and location of the database directory.
-To run waterpy, give waterpy the command `run` along with the path to the 
+To run waterpy, give waterpy the command `run` along with the path to the
 model configuration file:
 
 ::
@@ -53,7 +53,7 @@ model configuration file:
 The model results are saved to the output directory location specified in
 the model configuration file.
 
-A sample model configuration file called `modelconfig.ini` is located in the 
+A sample model configuration file called `modelconfig.ini` is located in the
 `data/` directory along with sample input files located in the `inputs/`
 directory and sample output files located in the `outputs/` directory.
 
@@ -142,7 +142,7 @@ typed-ast==1.5.3
 
 typing-extensions==4.2.0
 
-wrapt==1.14.0 
+wrapt==1.14.0
 
 
 Installation
@@ -170,17 +170,17 @@ If you do not have Python_ installed, please download the latest version from `P
 | usually specifies that the module/package has been packaged and distributed with the standard Python distribution
 | package called Distutils_.
 
-4. To install GDAL python geospatial .whl files are included for Python 3.7-3.9.::  
+4. To install GDAL python geospatial .whl files are included for Python 3.7-3.9.::
 
 	$ pip install /utilities/GDAL-3.1.2-cp38-cp38-win_amd64.whl
 
 	replace cp38 with you version of python.
 
 5. pip install requirements.txt
-	
+
 6. Run `setup.py` with the `install` command::
 
-    $ python setup.py install 
+    $ python setup.py install
 
 waterpy will now be installed to the standard location for third-party Python modules on your
 computer platform.
@@ -207,9 +207,9 @@ Disclaimer
 
 This software has been approved for release by the U.S. Geological Survey (USGS). Although the software has been
 subjected to rigorous review, the USGS reserves the right to update the software as needed pursuant to further analysis
-and review. No warranty, expressed or implied, is made by the USGS or the U.S. Government as to the functionality of 
-the software and related material nor shall the fact of release constitute any such warranty. Furthermore, the 
-software is released on condition that neither the USGS nor the U.S. Government shall be held liable for any damages 
+and review. No warranty, expressed or implied, is made by the USGS or the U.S. Government as to the functionality of
+the software and related material nor shall the fact of release constitute any such warranty. Furthermore, the
+software is released on condition that neither the USGS nor the U.S. Government shall be held liable for any damages
 resulting from its authorized or unauthorized use.
 
 The USGS provides no warranty, expressed or implied, as to the correctness of the furnished software or the suitability
